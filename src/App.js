@@ -25,31 +25,59 @@ function App() {
             <Route path="/about" element={<AboutPage/>}/>
             <Route
                 path="/home"
-                element={<ProtectedRoute element={HomePage}/>}
+                element={
+                  <ProtectedRoute>
+                    <HomePage />
+                  </ProtectedRoute>
+                }
             />
             <Route
                 path="/create-note"
-                element={<ProtectedRoute element={CreateNotePage}/>}
+                element={
+                  <ProtectedRoute>
+                    <CreateNotePage />
+                  </ProtectedRoute>
+                }
             />
             <Route
                 path="/profile"
-                element={<ProtectedRoute element={UserProfile}/>}
+                element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                }
             />
             <Route
                 path="/view-notes"
-                element={<ProtectedRoute element={ViewNotes}/>}
+                element={
+                  <ProtectedRoute>
+                    <ViewNotes />
+                  </ProtectedRoute>
+                }
             />
             <Route
                 path="/user-requests"
-                element={<ProtectedRoute element={RequestsPage}/>}
+                element={
+                  <ProtectedRoute>
+                    <RequestsPage />
+                  </ProtectedRoute>
+                }
             />
             <Route
                 path="/friends"
-                element={<ProtectedRoute element={FriendsPage}/>}
+                element={
+                  <ProtectedRoute>
+                    <FriendsPage />
+                  </ProtectedRoute>
+                }
             />
             <Route
                 path="/shares"
-                element={<ProtectedRoute element={SharesPage}/>}
+                element={
+                  <ProtectedRoute>
+                    <SharesPage />
+                  </ProtectedRoute>
+                }
             />
           </Routes>
         </Router>

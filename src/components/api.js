@@ -24,8 +24,7 @@ export const login = async (email, password) => {
     try {
         const response = await api.post('/login', {email, password});
 
-        // Store the token in localStorage to persist session
-        const {data} = response; // Destructure the response data
+        const {data} = response;
         return data;
 
     } catch (error) {
@@ -52,9 +51,9 @@ export const register = async (firstName, lastName, email, password) => {
     }
 };
 
-export const note = async (userId, title, text, date, grade) => {
+export const note = async (userId, title, text, date, grade, tags) => {
     try {
-        const response = await api.post('/notes', {userId, title, text, date, grade});
+        const response = await api.post('/notes', {userId, title, text, date, grade, tags});
         return response.data;
     } catch (error) {
         console.error('Error response:', error);
@@ -62,6 +61,20 @@ export const note = async (userId, title, text, date, grade) => {
             throw new Error(JSON.stringify(error.response.data));
         } else {
             throw new Error('Failed creating a note');
+        }
+    }
+}
+
+export const getTagsByUser = async () => {
+    try {
+        const response = await api.get('/tags');
+        return response.data;
+    } catch (error) {
+        console.error('Error response:', error);
+        if (error.response && error.response.data) {
+            throw new Error(JSON.stringify(error.response.data));
+        } else {
+            throw new Error('Failed retrieving the tags');
         }
     }
 }

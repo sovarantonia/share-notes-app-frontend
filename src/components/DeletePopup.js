@@ -1,22 +1,22 @@
 import React from 'react';
 
-import '../resources/delete-popup.css'
+import '../resources/user-profile.css'
+import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
 
-const ConfirmDeletePopup = ({isOpen, onClose, onConfirm}) => {
-    if (!isOpen) return null;
-
+const ConfirmDeleteDialog = ({isOpen, onClose, onConfirm}) => {
     return (
-        <div className="popup-overlay">
-            <div className="popup-content">
-                <h2>Confirm Account Deletion</h2>
-                <p>This action cannot be undone.</p>
-                <div className="popup-actions">
-                    <button type="delete" id="deleteAccountButton" onClick={onConfirm}>Yes, Delete</button>
-                    <button type="cancel" id="cancelButton" onClick={onClose}>Cancel</button>
-                </div>
-            </div>
-        </div>
+        <Dialog open={isOpen} onClose={onClose} aria-labelledby="confirm-dialog-title"
+                aria-describedby="confirm-dialog-description">
+            <DialogTitle id="confirm-dialog-title">Confirm Account Deletion</DialogTitle>
+            <DialogContent>
+                <DialogContentText id="confirm-dialog-description">This action cannot be undone.</DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onConfirm} autoFocus color="error">Yes, Delete</Button>
+                <Button onClick={onClose} color="secondary">Cancel</Button>
+            </DialogActions>
+        </Dialog>
     );
 };
 
-export default ConfirmDeletePopup;
+export default ConfirmDeleteDialog;

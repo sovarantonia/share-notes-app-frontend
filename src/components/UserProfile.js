@@ -3,10 +3,13 @@ import Sidebar from "./Sidebar";
 import React from "react";
 import {useState} from 'react';
 import {deleteAccount, updateUserCredentials} from "./api";
-import ConfirmDeletePopup from "./DeletePopup";
-import '../resources/delete-popup.css'
+import ConfirmDeleteDialog from "./DeletePopup";
+import '../resources/user-profile.css'
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faSave, faUserSlash} from "@fortawesome/free-solid-svg-icons";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import {Button, TextField} from "@mui/material";
 
 const UserProfile = () => {
     const [error, setError] = useState('');
@@ -18,24 +21,18 @@ const UserProfile = () => {
     const [firstName, setFirstName] = useState(user.firstName || '');
     const [lastName, setLastName] = useState(user.lastName || '');
 
-    const [isPopupOpen, setIsPopupOpen] = useState(false);
-
-    const openPopup = () => {
-        setIsPopupOpen(true);
-    };
-
-    const closePopup = () => {
-        setIsPopupOpen(false);
-    };
+    const [openDialog, setOpenDialog] = useState(false);
 
     const handleDeleteAccount = async () => {
-        setIsPopupOpen(false);
         try {
             await deleteAccount(userId);
             alert('Account deleted successfully');
             logout();
         } catch (error) {
             setError('Error deleting account');
+        }
+        finally {
+            setOpenDialog(false);
         }
     };
 
@@ -67,58 +64,28 @@ const UserProfile = () => {
     return (
         <div className="user-profile">
             <Sidebar onLogout={handleLogout}/>
-            <div className="main-content">
-                <form onSubmit={handleSubmit} className="form">
-                    {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
-                    <h2>User profile</h2>
-                    <div className="form-group">
-                        <label htmlFor="firstName">First Name:</label>
-                        <input
-                            type="text"
-                            id="firstName"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            placeholder="First name"
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="lastName">Last Name:</label>
-                        <input
-                            type="text"
-                            id="lastName"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            placeholder="Last name"
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="email">Email:</label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={user.email || ''}
-                            readOnly
-                            placeholder="Email"
-                            required
-                        />
-                    </div>
-                    <button type="submit" id="updateButton" onClick={handleSubmit}>
-                        <FontAwesomeIcon icon={faSave}/>Update
-                    </button>
-
-                    <button type="button" id="deletePopupButton" onClick={openPopup} className="delete-acc-btn">
-                        <FontAwesomeIcon icon={faUserSlash} />Delete account
-                    </button>
-
-                    <ConfirmDeletePopup
-                        isOpen={isPopupOpen}
-                        onClose={closePopup}
-                        onConfirm={handleDeleteAccount}
-                    />
-                </form>
-            </div>
+            <Typography variant="h4" gutterBottom>
+                User profile
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} noValidate autoComplete="off" id="userProfile"
+                 className="user-profile">
+                {error && (
+                    <Typography color="error" id="errorMessage" aria-live="assertive">
+                        {error}
+                    </Typography>
+                )}
+                <TextField id="firstNameInput" label="First Name" value={firstName}
+                           onChange={(e) => setFirstName(e.target.value)}/>
+                <TextField id="lastNameInput" label="Last Name" value={lastName}
+                           onChange={(e) => setLastName(e.target.value)}/>
+                <TextField id="emailInput" label="Email" value={user.email} InputProps={{readOnly: true}}
+                           variant="filled"/>
+                <Button type="submit" variant="contained" color="primary"
+                        startIcon={<FontAwesomeIcon icon={faSave}/>}>Update</Button>
+                <Button onClick={()=> setOpenDialog(true)} variant="contained" color="secondary"
+                        startIcon={<FontAwesomeIcon icon={faUserSlash}/>}>Delete account</Button>
+            </Box>
+            <ConfirmDeleteDialog isOpen={openDialog} onClose={() => setOpenDialog(false)} onConfirm={handleDeleteAccount}/>
         </div>
     );
 };

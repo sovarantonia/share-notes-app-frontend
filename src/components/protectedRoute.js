@@ -1,10 +1,12 @@
 import { Navigate } from 'react-router-dom';
 import { useUser } from './userContext';
 
-const ProtectedRoute = ({ element: Element, ...rest }) => {
-    const { user } = useUser(); // Access the user state from context
+const ProtectedRoute = ({children}) => {
+    const { user, loading } = useUser();
 
-    return user ? <Element {...rest} /> : <Navigate to="/login" replace />;
+    if (loading) return null;
+
+    return user ? children : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;
