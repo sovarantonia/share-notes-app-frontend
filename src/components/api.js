@@ -422,7 +422,7 @@ export const getSentSharedNotes = async (receiverEmail) => {
 
 export const getReceivedSharedNotes = async (senderEmail) => {
     try {
-        const response = await api.get('/share/sent', {
+        const response = await api.get('/share/received', {
             params: {senderEmail: senderEmail},
             headers: {
                 'Content-Type': 'text/plain'

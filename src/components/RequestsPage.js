@@ -2,22 +2,19 @@ import React, {useEffect, useState} from "react";
 import {acceptRequest, declineRequest, getReceivedRequests, getSentRequests} from "./api";
 import {useUser} from "./userContext";
 import Sidebar from "./Sidebar";
-import {Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
+import {Button, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs} from "@mui/material";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faCheck, faTimes} from "@fortawesome/free-solid-svg-icons";
 import '../resources/requests-page.css';
 import {debounce} from "lodash";
+import Typography from "@mui/material/Typography";
 
 const RequestsPage = () => {
     const {logout} = useUser();
     const [requests, setRequests] = useState([]);
     const [sentRequests, setSentRequests] = useState([]);
     const [error, setError] = useState('');
-    const [showTable, setShowTable] = useState(false);
-
-    const toggleTable = () => {
-        setShowTable(prevShowTable => !prevShowTable);
-    };
+    const [showTable, setShowTable] = useState(0);
 
     const fetchRequests = async () => {
         try {
@@ -73,8 +70,11 @@ const RequestsPage = () => {
             <div className="requestLists">
                 <Sidebar onLogout={handleLogout}/>
                 {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
-
-                <TableContainer id="receivedRequests">
+                <Tabs value={showTable} onChange={(e, newValue) => setShowTable(newValue)}>
+                    <Tab label="Received Requests"/>
+                    <Tab label="Sent requests"/>
+                </Tabs>
+                {showTable===0 && requests.length > 0 && (<TableContainer id="receivedRequests">
                     <Table sx={{width: '70%', margin: '20px 0', borderCollapse: 'collapse'}}
                            aria-label="received-requests">
                         <TableHead>
@@ -146,15 +146,10 @@ const RequestsPage = () => {
                             ))}
                         </TableBody>
                     </Table>
-                </TableContainer>
+                </TableContainer>)}
 
-                <div className="dialog-buttons">
-                    <Button id="sentRequestTableButton" onClick={toggleTable} variant="contained">
-                        {showTable ? 'Hide sent requests' : 'Show sent requests'}
-                    </Button>
-                </div>
 
-                {showTable && (<TableContainer id="sentRequests">
+                {showTable===1 && sentRequests.length > 0 && (<TableContainer id="sentRequests">
                         <Table sx={{width: '70%', margin: '20px 0', borderCollapse: 'collapse'}}
                                aria-label="sent-requests">
                             <TableHead>
@@ -212,6 +207,8 @@ const RequestsPage = () => {
                         </Table>
                     </TableContainer>
                 )}
+                {showTable === 0 && requests.length === 0 && <Typography>No received requests.</Typography>}
+                {showTable === 1 && sentRequests.length === 0 && <Typography>No sent requests.</Typography>}
             </div>
         </div>
 

@@ -3,28 +3,43 @@ import React, {useEffect, useState} from "react";
 import Sidebar from "./Sidebar";
 import {getReceivedSharedNotes, getSentSharedNotes, getUserFriends} from "./api";
 import {debounce} from "lodash";
-import {Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
+import {
+    Button, Card, CardActions,
+    CardContent, Checkbox, Chip,
+    FormControlLabel, Grid, Tab,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow, Tabs
+} from "@mui/material";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faPenToSquare} from "@fortawesome/free-solid-svg-icons";
 import DropdownInput from "./DropdownInput";
 import SharedNoteDialog from "./ViewSharedNoteDialog";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import DownloadDialog from "./DownloadDialog";
 
 const SharesPage = () => {
     const {logout} = useUser();
     const [error, setError] = useState('');
     const [sentShares, setSentShares] = useState([])
     const [receivedShares, setReceivedShares] = useState([])
-    const [showTable, setShowTable] = useState(false);
     const [userFriendList, setUserFriendList] = useState([])
-    const [selectedUser, setSelectedUser] = useState(null)
-
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [selectedReceivedNotes, setSelectedReceivedNotes] = useState([]);
+    const [activeTab, setActiveTab] = useState(0);
     const [open, setOpen] = useState(false);
     const [selectedNoteId, setSelectedNoteId] = useState(null);
     const [activeDialog, setActiveDialog] = useState(null);
+    const [openDownloadDialog, setOpenDownloadDialog] = useState(false);
 
     const handleLogout = () => {
         logout();
     };
+
 
     const fetchSentShares = async (receiverEmail) => {
         try {
@@ -70,10 +85,6 @@ const SharesPage = () => {
         }
     }
 
-    const toggleTable = () => {
-        setShowTable(prevShowTable => !prevShowTable);
-    };
-
     const handleOpenDialog = (noteId, dialogType) => {
         setSelectedNoteId(noteId);
         setOpen(true);
@@ -85,237 +96,161 @@ const SharesPage = () => {
         setActiveDialog(null);
     };
 
+    const handleCheckboxChange = (noteId) => {
+        setSelectedReceivedNotes((prev) =>
+            prev.includes(noteId)
+                ? prev.filter(id => id !== noteId) // remove if already selected
+                : [...prev, noteId]               // add if not selected
+        );
+    };
+
+    const handleTabChange = (e, newValue) => {
+        setActiveTab(newValue);
+        setSelectedUser(null);
+        setSelectedReceivedNotes([]); // clear checkbox selections
+
+        if (newValue === 0) {
+            fetchReceivedShares('');
+        } else {
+            fetchSentShares('');
+        }
+    };
+
     return (
         <div className="main-content">
             <Sidebar onLogout={handleLogout}/>
             {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
 
-            <DropdownInput options={userFriendList} onSearch={debounceSentShares}
-                           onSelect={(user) => {
-                               setSelectedUser(user); // Store the full user object
-                               debounceSentShares(user.email); // Pass the email to debounce function
-                           }}/>
+            <DropdownInput
+                options={userFriendList || []}
+                value={selectedUser}
+                onSearch={(inputValue) => {
+                    if (activeTab === 0) {
+                        debounceReceivedShares(inputValue);
+                    } else {
+                        debounceSentShares(inputValue);
+                    }
+                }}
+                onSelect={(user) => {
+                    setSelectedUser(user);
+                    if (user) {
+                        if (activeTab === 0) {
+                            debounceReceivedShares(user.email);
+                        } else {
+                            debounceSentShares(user.email);
+                        }
+                    } else {
+                        if (activeTab === 0) {
+                            fetchReceivedShares('');
+                        } else {
+                            fetchSentShares('');
+                        }
+                    }
+                }}
+            />
 
-            <TableContainer id="sentSharedNotes">
-                <Table sx={{width: '70%', margin: '20px 0', borderCollapse: 'collapse'}}
-                       aria-label="sent-shared-notes">
-                    <TableHead>
-                        <TableRow>
+            <Tabs value={activeTab} onChange={handleTabChange}>
+                <Tab label="Received"/>
+                <Tab label="Sent"/>
+            </Tabs>
 
-                            <TableCell sx={{
-                                backgroundColor: '#F2A2B1',
-                                fontWeight: 'bold',
-                                padding: '12px',
-                                border: '1px solid #ddd'
-                            }}>Receiver</TableCell>
+            {activeTab === 0 && (<Grid container spacing={2}>
+                {receivedShares.map(share => (
+                    <Grid item xs={12} sm={6} md={4} key={share.id}>
+                        <Card>
+                            <CardContent>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={selectedReceivedNotes.includes(share.sentNote.id)}
+                                            onChange={() => handleCheckboxChange(share.sentNote.id)}
+                                        />
+                                    }
+                                    label={share.sentNote.title}
+                                />
+                                <Typography>Received from: {share.sender.firstName} {share.sender.lastName}</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Sent at: {share.sentAt}
+                                </Typography>
+                                <Typography variant="body2" sx={{mt: 1}}>
+                                    {share.sentNote.text.slice(0, 100)}...
+                                </Typography>
+                            </CardContent>
+                            <CardActions>
+                                <Button size="small" onClick={() => handleOpenDialog(share.sentNote.id, "view")}>View</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>)}
 
-                            <TableCell sx={{
-                                backgroundColor: '#F2A2B1',
-                                fontWeight: 'bold',
-                                padding: '12px',
-                                border: '1px solid #ddd'
-                            }}>Note title</TableCell>
-
-                            <TableCell sx={{
-                                backgroundColor: '#F2A2B1',
-                                fontWeight: 'bold',
-                                padding: '12px',
-                                border: '1px solid #ddd'
-                            }}>Note content</TableCell>
-
-                            <TableCell sx={{
-                                backgroundColor: '#F2A2B1',
-                                fontWeight: 'bold',
-                                padding: '12px',
-                                border: '1px solid #ddd'
-                            }}>Created at</TableCell>
-
-                            <TableCell sx={{
-                                backgroundColor: '#F2A2B1',
-                                fontWeight: 'bold',
-                                padding: '12px',
-                                border: '1px solid #ddd'
-                            }}>Sent at</TableCell>
-
-                            <TableCell sx={{
-                                backgroundColor: '#F2A2B1',
-                                fontWeight: 'bold',
-                                padding: '12px',
-                                border: '1px solid #ddd'
-                            }}>Options</TableCell>
-
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {sentShares.map((item) => (
-                            <TableRow
-                                key={item.id}
-                            >
-                                <TableCell sx={{
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>{`${item.receiver.firstName} ${item.receiver.lastName} (${item.receiver.email})`}</TableCell>
-
-                                <TableCell sx={{
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>{item.sentNote.title}</TableCell>
-
-                                <TableCell sx={{
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>{item.sentNote.text}</TableCell>
-
-                                <TableCell
-                                    sx={{padding: '12px', border: '1px solid #ddd'}}>{item.sentNote.date}</TableCell>
-
-                                <TableCell
-                                    sx={{padding: '12px', border: '1px solid #ddd'}}>{item.sentAt}</TableCell>
-
-                                <TableCell sx={{padding: '12px', border: '1px solid #ddd'}}>
-                                    <Button id="viewNoteButton" size="2xl"
-                                            onClick={() => handleOpenDialog(item.sentNote.id, "view-received-note")}
-                                            title="View note" sx={{
-                                        backgroundColor: 'transparent',
-                                        color: '#48494c',
-                                    }}><FontAwesomeIcon
-                                        icon={faPenToSquare}/></Button>
-
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-
-            <div className="dialog-buttons">
-                <Button id="sentRequestTableButton" onClick={toggleTable} variant="contained">
-                    {showTable ? 'Hide received notes' : 'Show received notes'}
-                </Button>
-            </div>
-
-            {showTable && (
-                <>
-                    <DropdownInput options={userFriendList} onSearch={debounceReceivedShares}
-                                   onSelect={(user) => {
-                                       setSelectedUser(user); // Store the full user object
-                                       debounceReceivedShares(user.email); // Pass the email to debounce function
-                                   }}/>
-                    <TableContainer id="receivedSharedNotes">
-                        <Table sx={{width: '70%', margin: '20px 0', borderCollapse: 'collapse'}}
-                               aria-label="received-shared-notes">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell sx={{
-                                        backgroundColor: '#F2A2B1',
-                                        fontWeight: 'bold',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>Sender</TableCell>
-                                    <TableCell sx={{
-                                        backgroundColor: '#F2A2B1',
-                                        fontWeight: 'bold',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>Note title</TableCell>
-                                    <TableCell sx={{
-                                        backgroundColor: '#F2A2B1',
-                                        fontWeight: 'bold',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>Note content</TableCell>
-                                    <TableCell sx={{
-                                        backgroundColor: '#F2A2B1',
-                                        fontWeight: 'bold',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>Note grade</TableCell>
-                                    <TableCell sx={{
-                                        backgroundColor: '#F2A2B1',
-                                        fontWeight: 'bold',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>Created at</TableCell>
-                                    <TableCell sx={{
-                                        backgroundColor: '#F2A2B1',
-                                        fontWeight: 'bold',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>Sent at</TableCell>
-                                    <TableCell sx={{
-                                        backgroundColor: '#F2A2B1',
-                                        fontWeight: 'bold',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>Options</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {receivedShares.map((item) => (
-                                    <TableRow key={item.id}>
-                                        <TableCell sx={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            padding: '12px',
-                                            border: '1px solid #ddd'
-                                        }}>{`${item.sender.firstName} ${item.sender.lastName} (${item.sender.email})`}</TableCell>
-                                        <TableCell sx={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            padding: '12px',
-                                            border: '1px solid #ddd'
-                                        }}>{item.sentNote.title}</TableCell>
-                                        <TableCell sx={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            padding: '12px',
-                                            border: '1px solid #ddd'
-                                        }}>{item.sentNote.text}</TableCell>
-                                        <TableCell sx={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            padding: '12px',
-                                            border: '1px solid #ddd'
-                                        }}>{item.sentNote.grade}</TableCell>
-                                        <TableCell sx={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            padding: '12px',
-                                            border: '1px solid #ddd'
-                                        }}>{item.sentNote.date}</TableCell>
-                                        <TableCell
-                                            sx={{padding: '12px', border: '1px solid #ddd'}}>{item.sentAt}</TableCell>
-                                        <TableCell sx={{padding: '12px', border: '1px solid #ddd'}}>
-                                            <Button id="viewNoteButton" size="2xl"
-                                                    onClick={() => handleOpenDialog(item.sentNote.id, "view-sent-note")}
-                                                    title="View note" sx={{
-                                                backgroundColor: 'transparent',
-                                                color: '#48494c',
-                                            }}>
-                                                <FontAwesomeIcon icon={faPenToSquare}/>
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </>
+            {selectedReceivedNotes.length > 0 && (
+                <Box
+                    sx={{
+                        position: 'fixed',
+                        bottom: 20,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        backgroundColor: '#fff',
+                        borderRadius: 2,
+                        boxShadow: 3,
+                        padding: 2,
+                        zIndex: 1300,
+                    }}
+                >
+                    <Typography variant="body2" sx={{mr: 2, display: 'inline-block'}}>
+                        {selectedReceivedNotes.length} note{selectedReceivedNotes.length > 1 ? 's' : ''} selected
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        onClick={() => setOpenDownloadDialog(true)}
+                    >
+                        Download Selected
+                    </Button>
+                    <DownloadDialog
+                        open={openDownloadDialog}
+                        onClose={() => setOpenDownloadDialog(false)}
+                        selectedNotesIds={selectedReceivedNotes}
+                    />
+                    <Button
+                        variant="text"
+                        onClick={() => setSelectedReceivedNotes([])}
+                        sx={{ml: 2}}
+                    >
+                        Clear Selection
+                    </Button>
+                </Box>
             )}
+
+            {activeTab === 1 && (<Grid container spacing={2}>
+                {sentShares.map(share => (
+                    <Grid item xs={12} sm={6} md={4} key={share.id}>
+                        <Card>
+                            <CardContent>
+                                <Typography>Sent to: {share.receiver.firstName} {share.receiver.lastName}</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Sent at: {share.sentAt}
+                                </Typography>
+                                <Typography variant="body2" sx={{mt: 1}}>
+                                    {share.sentNote.text.slice(0, 100)}...
+                                </Typography>
+                            </CardContent>
+                            <CardActions>
+                                <Button size="small" onClick={() => handleOpenDialog(share.sentNote.id, "view")}>View</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>)}
+
+            {activeTab === 0 && receivedShares.length === 0 && (
+                <Typography sx={{ mt: 2 }}>No received notes found.</Typography>
+            )}
+
+            {activeTab === 1 && sentShares.length === 0 && (
+                <Typography sx={{ mt: 2 }}>No sent notes found.</Typography>
+            )}
+
 
             {selectedNoteId !== null && (
                 <SharedNoteDialog

@@ -18,6 +18,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTimes} from "@fortawesome/free-solid-svg-icons";
 import '../resources/friends-page.css';
 import DropdownInput from "./DropdownInput";
+import Typography from "@mui/material/Typography";
 
 const FriendsPage = () => {
     const {logout} = useUser();
@@ -110,11 +111,11 @@ const FriendsPage = () => {
                 <Sidebar onLogout={handleLogout}/>
                 {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
 
-                <h2>
+                <Typography>
                     Send request:<DropdownInput options={userList} onSearch={debounceGetUsers}
                                                 onSelect={setSelectedUser}/>
                     <Button onClick={() => handleSendRequest()} id="sendRequestButton" className="send-button">Send</Button>
-                </h2>
+                </Typography>
 
                 <TableContainer id="friendList">
                     <Table sx={{width: '70%', marginTop: '50px', marginBottom: '20px', borderCollapse: 'collapse'}}

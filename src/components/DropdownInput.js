@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
-import {Autocomplete, TextField} from '@mui/material';
+import React, {useEffect, useState} from 'react';
+import {Autocomplete, Button, TextField} from '@mui/material';
 import '../resources/dropdown-input.css'
 
-const DropdownInput = ({options, onSearch, onSelect}) => {
+const DropdownInput = ({ options = [], onSearch, onSelect, value }) => {
     const [inputValue, setInputValue] = useState('');
 
     const mappedOptions = options.map(option => ({
@@ -10,16 +10,22 @@ const DropdownInput = ({options, onSearch, onSelect}) => {
         user: option,
     }));
 
+    const selectedMappedOption = value
+        ? mappedOptions.find(opt => opt.user?.email === value.email)
+        : null;
+
     const handleInputChange = (event, newInputValue) => {
         setInputValue(newInputValue);
         onSearch(newInputValue);
     };
 
     const handleSelect = (e, newValue) => {
-      if (newValue){
-          onSelect(newValue.user);
-      }
-    }
+        if (newValue) {
+            onSelect(newValue.user);
+        } else {
+            onSelect(null);
+        }
+    };
 
     return (
         <div className="dropdownInputContainer">
@@ -27,19 +33,13 @@ const DropdownInput = ({options, onSearch, onSelect}) => {
                 id="searchUser"
                 options={mappedOptions}
                 getOptionLabel={(option) => option.label}
-                freeSolo
+                value={selectedMappedOption}
                 inputValue={inputValue}
                 onChange={handleSelect}
                 onInputChange={handleInputChange}
-                ListboxProps={{
-                    style: {
-                        maxHeight: '95px',
-                        overflow: 'auto',
-                    },
-                }}
+                isOptionEqualToValue={(option, value) => option.user?.email === value.user?.email}
                 renderInput={(params) => (
                     <TextField
-                        id="searchUserTextField"
                         {...params}
                         label="Search user"
                         sx={{ backgroundColor: "white", borderRadius: '7px' }}
