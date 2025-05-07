@@ -1,6 +1,5 @@
 import axios from 'axios';
-import fileDownload from 'js-file-download';
-
+import qs from 'qs';
 const API_URL = 'http://localhost:8080';
 
 // Axios instance to automatically attach Authorization header if token is present
@@ -163,9 +162,9 @@ export const deleteNote = async (noteId) => {
     }
 }
 
-export const updateNote = async (noteId, userId, title, text, date, grade) => {
+export const updateNote = async (noteId, userId, title, text, date, grade, tags) => {
     try {
-        const response = await api.patch(`/notes/${noteId}`, {userId, title, text, grade, date});
+        const response = await api.patch(`/notes/${noteId}`, {userId, title, text, grade, date, tags});
         return response.data;
     } catch (error) {
         console.error('Error response:', error);
@@ -177,20 +176,25 @@ export const updateNote = async (noteId, userId, title, text, date, grade) => {
     }
 }
 
-export const downloadNote = async (noteId, fileType) => {
+export const downloadNote = async (selectedNotesIds, fileType) => {
     try {
-        const response = await api.get(`/notes/${noteId}/download`, {
-            params: {type: fileType},
-            responseType: 'blob', // Ensure binary data (file)
+        const response = await api.get(`/notes/download`, {
+            params: {type: fileType, ids: selectedNotesIds},
+            responseType: 'blob',
+            paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' }),
         });
 
-        const contentDisposition = response.headers['content-disposition'];
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        const url = window.URL.createObjectURL(blob);
 
-        const fileName = contentDisposition
-            ? contentDisposition.split('filename=')[1].replace(/['"]/g, '')
-            : `note.${fileType}`;
-
-        fileDownload(response.data, fileName);
+        const link = document.createElement('a');
+        link.href = url;
+        const disposition = response.headers['content-disposition'];
+        const match = disposition && disposition.match(/filename="(.+)"/);
+        link.download = match?.[1] || 'downloaded-note';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
 
     } catch (error) {
         console.error('Error response:', error);

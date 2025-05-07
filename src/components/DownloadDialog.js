@@ -5,7 +5,7 @@ import '../resources/download-dialog.css';
 import {faCircleDown, faTimes} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
-const DownloadDialog = ({open, onClose, noteId}) => {
+const DownloadDialog = ({open, onClose, selectedNotesIds}) => {
     const [error, setError] = useState('');
     const [option, setOption] = useState('pdf');
 
@@ -15,7 +15,7 @@ const DownloadDialog = ({open, onClose, noteId}) => {
 
     const handleDownloadNote = async () => {
         try {
-            await downloadNote(noteId, option)
+            await downloadNote(selectedNotesIds, option)
             setError('')
             onClose();
         } catch (error) {
@@ -26,7 +26,7 @@ const DownloadDialog = ({open, onClose, noteId}) => {
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" className="download-dialog">
             <div className="dialog-content">
-                <h2>Download Note</h2>
+                <h2>Download Note(s) as: </h2>
                 {error && <div className="error">{error}</div>}
                 <FormControl>
                     <FormLabel id="file-type" shrink={true}>Download as:</FormLabel>

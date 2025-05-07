@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from "react";
-import {getNoteById, updateNote} from "./api";
+import {getNoteById, getTagsByUser, updateNote} from "./api";
 import {
-    Button,
+    Autocomplete,
+    Button, Chip,
     Dialog,
     FormControl,
     InputLabel,
@@ -15,18 +16,12 @@ import '../resources/update-note-dialog.css';
 const UpdateNoteDialog = ({open, onClose, noteId, onUpdate}) => {
     const [note, setNote] = useState(null);
     const [grade, setGrade] = useState('');
-    const [options] = useState([
-        {label: '1', value: 1},
-        {label: '2', value: 2},
-        {label: '3', value: 3},
-        {label: '4', value: 4},
-        {label: '5', value: 5},
-        {label: '6', value: 6},
-        {label: '7', value: 7},
-        {label: '8', value: 8},
-        {label: '9', value: 9},
-        {label: '10', value: 10},
-    ]);
+    const options = Array.from({ length: 10 }, (_, i) => ({
+        label: `${i + 1}`,
+        value: i + 1
+    }));
+    const [selectedTags, setSelectedTags] = useState([]);
+    const [tagOptions, setTagOptions] = useState([]);
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -34,8 +29,11 @@ const UpdateNoteDialog = ({open, onClose, noteId, onUpdate}) => {
             const fetchNote = async () => {
                 try {
                     const data = await getNoteById(noteId);
+                    const userTags = await getTagsByUser();
                     setNote(data);
                     setGrade(data.grade);
+                    setSelectedTags(data.tags.map(tag => tag.name));
+                    setTagOptions(userTags.map(tag => tag.name));
                 } catch (err) {
                     setError('Failed to fetch note');
                 }
@@ -58,6 +56,7 @@ const UpdateNoteDialog = ({open, onClose, noteId, onUpdate}) => {
                     note.text,
                     note.date,
                     grade,
+                    selectedTags
                 );
                 setError('')
                 onUpdate();
@@ -67,6 +66,9 @@ const UpdateNoteDialog = ({open, onClose, noteId, onUpdate}) => {
             }
         }
     };
+
+    const capitalizeWords = (text) =>
+        text.replace(/\b\w/g, (char) => char.toUpperCase());
 
     if (!note) return null;
 
@@ -81,6 +83,32 @@ const UpdateNoteDialog = ({open, onClose, noteId, onUpdate}) => {
                     onChange={(e) => setNote({...note, title: e.target.value})}
                     fullWidth
                     id="title"
+                />
+                <Autocomplete
+                    multiple
+                    freeSolo
+                    options={tagOptions} // all user-defined tags from backend (array of strings)
+                    value={selectedTags}
+                    onChange={(event, newValue) => {
+                        // Capitalize and de-duplicate entries
+                        const normalized = [...new Set(newValue.map(tag =>
+                            capitalizeWords(tag.trim())
+                        ))];
+                        setSelectedTags(normalized);
+                    }}
+                    renderTags={(value, getTagProps) =>
+                        value.map((option, index) => (
+                            <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                        ))
+                    }
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Tags"
+                            placeholder="Type or select tags"
+                            id="tagsInput"
+                        />
+                    )}
                 />
                 <TextField
                     label="Content"
@@ -121,7 +149,6 @@ const UpdateNoteDialog = ({open, onClose, noteId, onUpdate}) => {
                     <Button onClick={onClose} variant="outlined" color="secondary" id="cancelButton">
                         <FontAwesomeIcon icon={faTimes}/> Cancel
                     </Button>
-
 
                 </div>
             </div>

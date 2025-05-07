@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar";
 import React from "react";
 import {useState} from 'react';
 import {deleteAccount, updateUserCredentials} from "./api";
-import ConfirmDeleteDialog from "./DeletePopup";
+import ConfirmDeleteDialog from "./DeleteUserDialog";
 import '../resources/user-profile.css'
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faSave, faUserSlash} from "@fortawesome/free-solid-svg-icons";
