@@ -1,5 +1,6 @@
 import axios from 'axios';
 import qs from 'qs';
+
 const API_URL = 'http://localhost:8080';
 
 // Axios instance to automatically attach Authorization header if token is present
@@ -134,9 +135,17 @@ export const getNoteById = async (noteId) => {
     }
 }
 
-export const filterNotesByTitle = async (title) => {
+export const searchNotes = async (title, tag, grade, from, to) => {
     try {
-        const response = await api.get('/notes/filter', {params: {string: title}});
+        const response = await api.get('/notes/search', {
+            params: {
+                title: title,
+                tag: tag,
+                grade: grade,
+                from: from,
+                to: to,
+            }
+        });
         return response.data;
     } catch (error) {
         console.error('Error response:', error);
@@ -181,10 +190,10 @@ export const downloadNote = async (selectedNotesIds, fileType) => {
         const response = await api.get(`/notes/download`, {
             params: {type: fileType, ids: selectedNotesIds},
             responseType: 'blob',
-            paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' }),
+            paramsSerializer: params => qs.stringify(params, {arrayFormat: 'repeat'}),
         });
 
-        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        const blob = new Blob([response.data], {type: response.headers['content-type']});
         const url = window.URL.createObjectURL(blob);
 
         const link = document.createElement('a');
