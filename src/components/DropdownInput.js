@@ -36,6 +36,11 @@ const DropdownInput = ({ options = [], onSearch, onSelect, value }) => {
                 value={selectedMappedOption}
                 inputValue={inputValue}
                 onChange={handleSelect}
+                onFocus={() => {
+                    if (mappedOptions.length === 0) {
+                        onSearch('');
+                    }
+                }}
                 onInputChange={handleInputChange}
                 isOptionEqualToValue={(option, value) => option.user?.email === value.user?.email}
                 renderInput={(params) => (

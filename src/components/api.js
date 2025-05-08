@@ -438,3 +438,17 @@ export const getReceivedSharedNotes = async (senderEmail) => {
         }
     }
 }
+
+export const getUsersNotFiendsWith = async (searchString) => {
+    try {
+        const response = await api.get('/user/non-friends', {params: {searchString: searchString}})
+        return response.data;
+    }catch (error) {
+        console.error('Error response:', error);
+        if (error.response && error.response.data) {
+            throw new Error(JSON.stringify(error.response.data));
+        } else {
+            throw new Error('Failed retrieving the users');
+        }
+    }
+}

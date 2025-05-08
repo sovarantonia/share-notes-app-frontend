@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from "react";
-import {getUserFriends, removeFriend, searchUsers, sendRequest} from "./api";
+import {getUserFriends, getUsersNotFiendsWith, removeFriend, searchUsers, sendRequest} from "./api";
 import {debounce} from "lodash";
 import Sidebar from "./Sidebar";
 import {useUser} from "./userContext";
 import {
+    Autocomplete,
     Button,
     Dialog, DialogActions, DialogContent, DialogContentText,
     DialogTitle,
@@ -17,8 +18,8 @@ import {
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTimes} from "@fortawesome/free-solid-svg-icons";
 import '../resources/friends-page.css';
-import DropdownInput from "./DropdownInput";
 import Typography from "@mui/material/Typography";
+import DropdownInput from "./DropdownInput";
 
 const FriendsPage = () => {
     const {logout} = useUser();
@@ -80,7 +81,7 @@ const FriendsPage = () => {
     }, 300);
 
     const getUsers = async (searchString) => {
-        const data = await searchUsers(searchString);
+        const data = await getUsersNotFiendsWith(searchString);
         setUserList(data);
     }
 
@@ -112,8 +113,8 @@ const FriendsPage = () => {
                 {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
 
                 <Typography>
-                    Send request:<DropdownInput options={userList} onSearch={debounceGetUsers}
-                                                onSelect={setSelectedUser}/>
+                    Send request: <DropdownInput options={userList} onSearch={debounceGetUsers}
+                                                 onSelect={setSelectedUser}/>
                     <Button onClick={() => handleSendRequest()} id="sendRequestButton" className="send-button">Send</Button>
                 </Typography>
 

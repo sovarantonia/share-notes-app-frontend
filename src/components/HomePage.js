@@ -6,6 +6,7 @@ import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "
 import {latestNotes} from "./api";
 import "../resources/table.css";
 import NotesChart from "./NotesChart";
+import Typography from "@mui/material/Typography";
 
 const HomePage = () => {
     const {logout} = useUser();
@@ -36,7 +37,7 @@ const HomePage = () => {
             <div className="main-content">
                 <NotesChart/>
                 {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
-                <h2>Latest notes</h2>
+                <Typography variant="h4">Latest notes</Typography>
                 <TableContainer id="recentNotesTable">
                     <Table sx={{width: '70%', margin: '20px 0', borderCollapse: 'collapse'}} aria-label="latest-notes">
                         <TableHead>

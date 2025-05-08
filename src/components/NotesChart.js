@@ -1,9 +1,12 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import DatePicker from "react-datepicker";
 import {BarChart} from '@mui/x-charts/BarChart';
 import {getNotesBetweenDates} from "./api";
 import {endOfWeek, format, startOfWeek} from 'date-fns';
 import '../resources/notes-chart.css';
+import Typography from "@mui/material/Typography";
+import {Button} from "@mui/material";
+import html2canvas from "html2canvas";
 
 const formatDate = (date) => {
     return format(date, 'dd-MM-yyyy');
@@ -35,11 +38,24 @@ const NotesBetweenWeek = () => {
         notesBetweenDates();
     }, [startDate]);
 
+    const chartRef = useRef();
+
+    const handleDownloadChart = async () => {
+        if (!chartRef.current) return;
+
+        const canvas = await html2canvas(chartRef.current);
+        const dataUrl = canvas.toDataURL('image/png');
+
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = 'chart.png';
+        link.click();
+    };
 
     return (
         <div>
             {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
-            <h2>Weekly chart</h2>
+            <Typography variant="h4">Weekly chart</Typography>
             <div className="datepicker-container">
 
                 <div className="rounded-datepicker">
@@ -57,36 +73,49 @@ const NotesBetweenWeek = () => {
 
             <div className="barchart-container">
                 {weeklyGrades.length === 0 ? (
-                    <div>No data to display</div>
+                    <Typography>No data to display</Typography>
                 ) : (
-                <BarChart
-                    series={[
-                        {
-                            data: weeklyGrades.map(note => note.grade),
-                            label: 'Grade',
+                    <div>
+                        <div ref={chartRef}>
+                            <BarChart
+                                series={[
+                                    {
+                                        data: weeklyGrades.map(note => note.averageGrade),
+                                        label: 'Grade',
+                                    }
+                                ]}
 
-                        }
-                    ]}
+                                yAxis={[
+                                    {
+                                        colorMap: {
+                                            type: 'continuous',
+                                            min: 1,
+                                            max: 10,
+                                            color: ['#f44336', '#2db34b'],
+                                        },
+                                    },
+                                ]}
+                                xAxis={[
+                                    {
+                                        scaleType: 'band',
+                                        data: weeklyGrades.map(note => note.date),
+                                    },
+                                ]}
 
-                    yAxis={[
-                        {
-                            colorMap: {
-                                type: 'continuous',
-                                min: 1,
-                                max: 10,
-                                color: ['#f44336', '#2db34b'],
-                            },
-                        },
-                    ]}
-                    xAxis={[
-                        {
-                            scaleType: 'band',
-                            data: weeklyGrades.map(note => note.date),
-                        },
-                    ]}
+                                height={290}
+                            />
 
-                    height={290}
-                />
+                        </div>
+                        <Button
+                        onClick={handleDownloadChart}
+                        variant="outlined"
+                        sx={{ mb: 2 }}
+                        >
+                        Download Chart
+                    </Button>
+                    </div>
+
+
                 )}
             </div>
         </div>
