@@ -1,10 +1,9 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import '../resources/sidebar.css';
 import {useUser} from "./userContext";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faDoorOpen} from "@fortawesome/free-solid-svg-icons";
-import {Drawer, List, ListItem, ListItemButton, ListItemText, Divider, Typography, Box, Button} from '@mui/material';
+import {Drawer, List, ListItem, ListItemButton, ListItemText, Divider, Typography, Box} from '@mui/material';
 
 const Sidebar = ({onLogout}) => {
     const {logout} = useUser();
@@ -14,83 +13,78 @@ const Sidebar = ({onLogout}) => {
     };
 
     return (
-
         <Drawer
             variant="permanent"
             anchor="left"
             className="sidebar-drawer"
             PaperProps={{
                 sx: {
+                    width: 250,
                     backgroundColor: "#4a749f",
                     color: "#ffffff",
+                    borderRight: 0,
                 },
-                className: "sidebar-paper",
             }}
         >
-            <Box className="sidebar-box">
-                <Typography variant="h5" className="sidebar-title">
+            <Box sx={{p: 2, display: 'flex', flexDirection: 'column', height: '100%'}}>
+                <Typography variant="h5" className="sidebar-title" sx={{
+                    fontWeight: 570,
+                    textAlign: 'center',
+                    mb: 2,
+                    color: 'inherit',
+                }}>
                     Navigation
                 </Typography>
 
-                <List className="sidebar-list">
-                    <ListItem disablePadding>
-                        <ListItemButton component={Link} to="/home" id="homePageElement" className="sidebar-link">
-                            <ListItemText primary="Home"/>
-                        </ListItemButton>
-                    </ListItem>
-
-                    <ListItem disablePadding>
-                        <ListItemButton component={Link} to="/create-note" id="createNoteElement"
-                                        className="sidebar-link">
-                            <ListItemText primary="Create new note"/>
-                        </ListItemButton>
-                    </ListItem>
-
-                    <ListItem disablePadding>
-                        <ListItemButton component={Link} to="/view-notes" id="viewNotesElement"
-                                        className="sidebar-link">
-                            <ListItemText primary="View notes"/>
-                        </ListItemButton>
-                    </ListItem>
-
-                    <ListItem disablePadding>
-                        <ListItemButton component={Link} to="/shares" id="sharedNotesElement" className="sidebar-link">
-                            <ListItemText primary="Shares"/>
-                        </ListItemButton>
-                    </ListItem>
-
-                    <ListItem disablePadding>
-                        <ListItemButton component={Link} to="/friends" id="friendList" className="sidebar-link">
-                            <ListItemText primary="Friends"/>
-                        </ListItemButton>
-                    </ListItem>
-
-                    <ListItem disablePadding>
-                        <ListItemButton component={Link} to="/user-requests" id="userRequests" className="sidebar-link">
-                            <ListItemText primary="Manage requests"/>
-                        </ListItemButton>
-                    </ListItem>
-
-                    <ListItem disablePadding>
-                        <ListItemButton component={Link} to="/profile" id="profileElement" className="sidebar-link">
-                            <ListItemText primary="Profile"/>
-                        </ListItemButton>
-                    </ListItem>
+                <List sx={{ flexGrow: 1 }}>
+                    {[
+                        { text: "Home", to: "/home", id: "homePageElement" },
+                        { text: "Create new note", to: "/create-note", id: "createNoteElement" },
+                        { text: "View notes", to: "/view-notes", id: "viewNotesElement" },
+                        { text: "Shares", to: "/shares", id: "sharedNotesElement" },
+                        { text: "Friends", to: "/friends", id: "friendList" },
+                        { text: "Manage requests", to: "/user-requests", id: "userRequests" },
+                        { text: "Profile", to: "/profile", id: "profileElement" },
+                    ].map((item) => (
+                        <ListItem key={item.id} disablePadding>
+                            <ListItemButton
+                                component={Link}
+                                to={item.to}
+                                id={item.id}
+                                sx={{
+                                    color: 'inherit',
+                                    '&:hover': {
+                                        backgroundColor: '#3a6283',
+                                    },
+                                }}
+                            >
+                                <ListItemText primary={item.text} />
+                            </ListItemButton>
+                        </ListItem>
+                    ))}
                 </List>
 
-                <Divider className="sidebar-divider"/>
+                <Divider sx={{ backgroundColor: '#ffffff33', my: 2 }} />
 
                 <List>
                     <ListItem disablePadding>
-                        <ListItemButton onClick={handleLogout} id="logoutButton" className="sidebar-logout">
-                            <FontAwesomeIcon icon={faDoorOpen} sx={{mr: 1}}/>
-                            <ListItemText primary="Logout"/>
+                        <ListItemButton
+                            onClick={handleLogout}
+                            id="logoutButton"
+                            sx={{
+                                color: 'inherit',
+                                '&:hover': {
+                                    backgroundColor: '#3a6283',
+                                },
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faDoorOpen} style={{ marginRight: '8px' }} />
+                            <ListItemText primary="Logout" />
                         </ListItemButton>
                     </ListItem>
                 </List>
             </Box>
         </Drawer>
-
     );
 };
 

@@ -1,9 +1,10 @@
 import React, {useState} from "react";
-import {Button, Dialog, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup} from "@mui/material";
+import {Button, Dialog, DialogTitle, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup} from "@mui/material";
 import {downloadNote} from "./api";
-import '../resources/download-dialog.css';
 import {faCircleDown, faTimes} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 
 const DownloadDialog = ({open, onClose, selectedNotesIds}) => {
     const [error, setError] = useState('');
@@ -25,9 +26,16 @@ const DownloadDialog = ({open, onClose, selectedNotesIds}) => {
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" className="download-dialog">
-            <div className="dialog-content">
-                <h2>Download Note(s) as: </h2>
-                {error && <div className="error">{error}</div>}
+
+            <DialogTitle>Download Note(s)</DialogTitle>
+            <Box sx={{px: 3, py: 2}}>
+                {
+                    error && (
+                        <Typography color="error" id="errorMessage" aria-live="assertive">
+                            {error}
+                        </Typography>
+                    )
+                }
                 <FormControl>
                     <FormLabel id="file-type" shrink={true}>Download as:</FormLabel>
                     <RadioGroup
@@ -42,15 +50,27 @@ const DownloadDialog = ({open, onClose, selectedNotesIds}) => {
                         <FormControlLabel control={<Radio/>} label="Text" value="txt"/>
                     </RadioGroup>
                 </FormControl>
-                <div className="dialog-buttons">
-                    <Button id="downloadButton" onClick={handleDownloadNote} variant="contained">
+
+                <Box sx={{display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3}}>
+                    <Button id="downloadButton" onClick={handleDownloadNote} variant="contained" sx={{
+                        border: '1px solid #2db34b',
+                        backgroundColor: '#2db34b',
+                        color: '#fff',
+                        '&:hover': {
+                            backgroundColor: '#218838',
+                            borderColor: '#218838',
+                            color: '#fff',
+                        },
+                    }}>
                         <FontAwesomeIcon icon={faCircleDown}/>Download
                     </Button>
                     <Button id="cancelButton" onClick={onClose} variant="outlined" color="secondary">
                         <FontAwesomeIcon icon={faTimes}/> Cancel
                     </Button>
-                </div>
-            </div>
+                </Box>
+
+            </Box>
+
         </Dialog>
     );
 };

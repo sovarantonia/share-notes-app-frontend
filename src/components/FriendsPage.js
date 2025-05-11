@@ -1,10 +1,9 @@
 import React, {useEffect, useState} from "react";
-import {getUserFriends, getUsersNotFiendsWith, removeFriend, searchUsers, sendRequest} from "./api";
+import {getUserFriends, getUsersNotFiendsWith, removeFriend, sendRequest} from "./api";
 import {debounce} from "lodash";
 import Sidebar from "./Sidebar";
 import {useUser} from "./userContext";
 import {
-    Autocomplete,
     Button,
     Dialog, DialogActions, DialogContent, DialogContentText,
     DialogTitle,
@@ -17,9 +16,9 @@ import {
 } from "@mui/material";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTimes} from "@fortawesome/free-solid-svg-icons";
-import '../resources/friends-page.css';
 import Typography from "@mui/material/Typography";
 import DropdownInput from "./DropdownInput";
+import Box from "@mui/material/Box";
 
 const FriendsPage = () => {
     const {logout} = useUser();
@@ -49,7 +48,7 @@ const FriendsPage = () => {
             const receiverEmail = selectedUser.email;
             sendFriendRequest(senderId, receiverEmail)
         } else {
-            setError("Please select a user.");
+            alert("Please select a user.");
         }
     }
 
@@ -107,84 +106,65 @@ const FriendsPage = () => {
 
 
     return (
-        <div className="main-content">
-            <div className="friend-page">
+        <Box sx={{display: 'flex', minHeight: '100vh', backgroundColor: '#f1f4f9'}}>
+            <Box sx={{width: 250, flexShrink: 0}}>
                 <Sidebar onLogout={handleLogout}/>
-                {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
+            </Box>
 
-                <Typography>
-                    Send request: <DropdownInput options={userList} onSearch={debounceGetUsers}
-                                                 onSelect={setSelectedUser}/>
-                    <Button onClick={() => handleSendRequest()} id="sendRequestButton" className="send-button">Send</Button>
-                </Typography>
+            <Box sx={{flexGrow: 1, padding: '24px'}}>
+                {error && (
+                    <Typography color="error" id="errorMessage" aria-live="assertive">
+                        {error}
+                    </Typography>
+                )}
+
+                <Box sx={{display: 'flex', alignItems: 'center', gap: 2, mb: 3}}>
+                    <Typography sx={{flexShrink: 0}} variant="h5">Send request:</Typography>
+                    <DropdownInput options={userList} onSearch={debounceGetUsers} onSelect={setSelectedUser}/>
+                    <Button
+                        onClick={handleSendRequest}
+                        id="sendRequestButton"
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#2db34b',
+                            color: '#fff',
+                            borderRadius: '8px',
+                            padding: '8px 16px',
+                            fontWeight: 'bold',
+                            textTransform: 'none',
+                            '&:hover': {backgroundColor: '#218838'}
+                        }}
+                    >
+                        Send
+                    </Button>
+                </Box>
 
                 <TableContainer id="friendList">
-                    <Table sx={{width: '70%', marginTop: '50px', marginBottom: '20px', borderCollapse: 'collapse'}}
-                           aria-label="friend-list">
+                    <Table>
                         <TableHead>
                             <TableRow>
-
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>First name</TableCell>
-
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Last name</TableCell>
-
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Email</TableCell>
-
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Option</TableCell>
-
+                                <TableCell>First name</TableCell>
+                                <TableCell>Last name</TableCell>
+                                <TableCell>Email</TableCell>
+                                <TableCell>Option</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {friends.map((item) => (
-                                <TableRow
-                                    key={item.id}
-                                >
-                                    <TableCell sx={{
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>{`${item.firstName}`}</TableCell>
-
-                                    <TableCell sx={{
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>{item.lastName}</TableCell>
-
-                                    <TableCell
-                                        sx={{
-                                            padding: '12px',
-                                            border: '1px solid #ddd'
-                                        }}>{item.email}</TableCell>
-
-                                    <TableCell sx={{padding: '12px', border: '1px solid #ddd'}}>
-                                        <Button id="removeButton" size="2xl"
-                                                onClick={() => handleRemoveClick(item.id)}><FontAwesomeIcon
-                                            icon={faTimes}/>Remove</Button>
+                                <TableRow key={item.id}>
+                                    <TableCell>{item.firstName}</TableCell>
+                                    <TableCell>{item.lastName}</TableCell>
+                                    <TableCell>{item.email}</TableCell>
+                                    <TableCell>
+                                        <Button
+                                            id="removeButton"
+                                            size="small"
+                                            onClick={() => handleRemoveClick(item.id)}
+                                            startIcon={<FontAwesomeIcon icon={faTimes}/>}
+                                            sx={{color: '#9a1308'}}
+                                        >
+                                            Remove
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -192,29 +172,38 @@ const FriendsPage = () => {
                     </Table>
                 </TableContainer>
 
-
-                <Dialog open={openDialog} onClose={handleCloseDialog} className="delete-friend-dialog">
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
                     <DialogTitle>Confirm Removal</DialogTitle>
                     <DialogContent>
-                        <DialogContentText>
-                            This action cannot be undone
-                        </DialogContentText>
+                        <DialogContentText>This action cannot be undone</DialogContentText>
                     </DialogContent>
                     <DialogActions>
-                        <div className="dialog-buttons">
-                            <Button onClick={confirmRemoveFriend} color="primary" variant="contained" id="deleteButton">
+                        <Box sx={{display: 'flex', justifyContent: 'flex-end', gap: '16px'}}>
+                            <Button onClick={confirmRemoveFriend} color="primary" variant="contained" sx={{
+                                backgroundColor: '#9a1308',
+                                color: 'white',
+                                '&:hover': {
+                                    backgroundColor: '#771810'
+                                }
+                            }}>
                                 Remove
                             </Button>
-                            <Button onClick={handleCloseDialog} color="secondary" variant="outlined" id="cancelButton">
+                            <Button onClick={handleCloseDialog} color="secondary" variant="outlined" sx={{
+                                borderColor: '#2db34b',
+                                color: '#2db34b',
+                                '&:hover': {
+                                    backgroundColor: '#218838',
+                                    borderColor: '#218838',
+                                    color: '#fff'
+                                }
+                            }}>
                                 Cancel
                             </Button>
-
-                        </div>
+                        </Box>
                     </DialogActions>
                 </Dialog>
-
-            </div>
-        </div>
-    )
+            </Box>
+        </Box>
+    );
 }
 export default FriendsPage;

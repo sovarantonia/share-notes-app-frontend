@@ -3,10 +3,10 @@ import DatePicker from "react-datepicker";
 import {BarChart} from '@mui/x-charts/BarChart';
 import {getNotesBetweenDates} from "./api";
 import {endOfWeek, format, startOfWeek} from 'date-fns';
-import '../resources/notes-chart.css';
 import Typography from "@mui/material/Typography";
 import {Button} from "@mui/material";
 import html2canvas from "html2canvas";
+import Box from "@mui/material/Box";
 
 const formatDate = (date) => {
     return format(date, 'dd-MM-yyyy');
@@ -14,7 +14,7 @@ const formatDate = (date) => {
 const NotesBetweenWeek = () => {
     const [startDate, setStartDate] = useState(startOfWeek(new Date(), {weekStartsOn: 1}));
     const [weeklyGrades, setWeeklyGrades] = useState([]);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState('');
     const [endDate, setEndDate] = useState(endOfWeek(new Date(), {weekStartsOn: 1}));
 
     const handleStartDateChange = (date) => {
@@ -54,70 +54,121 @@ const NotesBetweenWeek = () => {
 
     return (
         <div>
-            {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
-            <Typography variant="h4">Weekly chart</Typography>
-            <div className="datepicker-container">
+            <Typography variant="h4" sx={{mb: 2}}>
+                Weekly chart
+            </Typography>
+            {error && (
+                <Typography color="error" id="errorMessage" aria-live="assertive">
+                    {error}
+                </Typography>
+            )}
+            <Box
+                sx={{
+                    display: 'flex',
+                    gap: 2,
+                    mb: 3,
+                    borderRadius: 2,
+                }}
+            >
+                <Box
+                    sx={{
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        '& input': {
+                            borderRadius: 2,
+                            border: '1px solid #ccc',
+                            padding: '10px',
+                        },
+                    }}
+                >
+                    <DatePicker
+                        id="startDate"
+                        selected={startDate}
+                        onChange={handleStartDateChange}
+                        dateFormat="dd-MM-yyyy"
+                        calendarStartDay={1}
+                    />
+                </Box>
 
-                <div className="rounded-datepicker">
-                    <DatePicker id="startDate" value={new Date(startDate).toDateString()}
-                                onChange={handleStartDateChange}
-                                dateFormat="dd-MM-yyyy" calendarStartDay={1}/>
-                </div>
+                <Box
+                    sx={{
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        '& input': {
+                            borderRadius: 2,
+                            border: '1px solid #ccc',
+                            padding: '10px',
+                        },
+                    }}
+                >
+                    <DatePicker
+                        id="endDate"
+                        selected={endDate}
+                        onChange={handleStartDateChange}
+                        dateFormat="dd-MM-yyyy"
+                        calendarStartDay={1}
+                        readOnly
+                    />
+                </Box>
+            </Box>
 
-                <div className="rounded-datepicker">
-                    <DatePicker id="endDate" value={new Date(endDate).toDateString()} onChange={handleStartDateChange}
-                                dateFormat="dd-MM-yyyy" calendarStartDay={1} readOnly/>
-                </div>
+            <Box>
 
-            </div>
-
-            <div className="barchart-container">
-                {weeklyGrades.length === 0 ? (
-                    <Typography>No data to display</Typography>
-                ) : (
-                    <div>
-                        <div ref={chartRef}>
+                <Box
+                    ref={chartRef}
+                    sx={{
+                        maxWidth: 600,
+                        mx: 'auto',
+                        '& .MuiBar-root': {
+                            strokeWidth: 1,
+                            stroke: 'white',
+                        },
+                    }}
+                >
+                    {weeklyGrades.length === 0 ? (
+                        <Typography>No data to display</Typography>
+                    ) : (
+                        <>
                             <BarChart
+                                height={290}
                                 series={[
                                     {
-                                        data: weeklyGrades.map(note => note.averageGrade),
-                                        label: 'Grade',
-                                    }
-                                ]}
-
-                                yAxis={[
-                                    {
-                                        colorMap: {
-                                            type: 'continuous',
-                                            min: 1,
-                                            max: 10,
-                                            color: ['#f44336', '#2db34b'],
-                                        },
+                                        data: weeklyGrades.map((note) => note.averageGrade),
                                     },
                                 ]}
                                 xAxis={[
                                     {
                                         scaleType: 'band',
-                                        data: weeklyGrades.map(note => note.date),
+                                        data: weeklyGrades.map((note) => note.date),
+                                        label: 'Date',
                                     },
                                 ]}
-
-                                height={290}
+                                yAxis={[
+                                    {
+                                        label: 'Grade',
+                                        colorMap: {
+                                            type: 'continuous',
+                                            min: 1,
+                                            max: 10,
+                                            color: ['#9a2b20', '#19b141'],
+                                        },
+                                    },
+                                ]}
                             />
-
-                        </div>
-                        <Button
-                        onClick={handleDownloadChart}
-                        variant="outlined"
-                        sx={{ mb: 2 }}
-                        >
-                        Download Chart
-                    </Button>
-                    </div>
-
-
-                )}
-            </div>
+                        </>
+                    )}
+                </Box>
+                {weeklyGrades.length > 0 && (<Button
+                    onClick={handleDownloadChart}
+                    variant="outlined"
+                    sx={{display: 'block', mx: 'auto', mt: 2}}
+                    id="downloadChartButton"
+                >
+                    Download Chart
+                </Button>)}
+            </Box>
         </div>
     );
 };

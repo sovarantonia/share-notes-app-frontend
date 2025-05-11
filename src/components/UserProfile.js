@@ -4,12 +4,11 @@ import React from "react";
 import {useState} from 'react';
 import {deleteAccount, updateUserCredentials} from "./api";
 import ConfirmDeleteDialog from "./DeleteUserDialog";
-import '../resources/user-profile.css'
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faSave, faUserSlash} from "@fortawesome/free-solid-svg-icons";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {Button, TextField} from "@mui/material";
+import {Button, Card, CardContent, Stack, TextField} from "@mui/material";
 
 const UserProfile = () => {
     const [error, setError] = useState('');
@@ -62,31 +61,93 @@ const UserProfile = () => {
     };
 
     return (
-        <div className="user-profile">
-            <Sidebar onLogout={handleLogout}/>
-            <Typography variant="h4" gutterBottom>
-                User profile
-            </Typography>
-            <Box component="form" onSubmit={handleSubmit} noValidate autoComplete="off" id="userProfile"
-                 className="user-profile">
-                {error && (
-                    <Typography color="error" id="errorMessage" aria-live="assertive">
-                        {error}
-                    </Typography>
-                )}
-                <TextField id="firstNameInput" label="First Name" value={firstName}
-                           onChange={(e) => setFirstName(e.target.value)}/>
-                <TextField id="lastNameInput" label="Last Name" value={lastName}
-                           onChange={(e) => setLastName(e.target.value)}/>
-                <TextField id="emailInput" label="Email" value={user.email} InputProps={{readOnly: true}}
-                           variant="filled"/>
-                <Button type="submit" variant="contained" color="primary"
-                        startIcon={<FontAwesomeIcon icon={faSave}/>}>Update</Button>
-                <Button onClick={()=> setOpenDialog(true)} variant="contained" color="secondary"
-                        startIcon={<FontAwesomeIcon icon={faUserSlash}/>}>Delete account</Button>
+        <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default'}}>
+            <Box sx={{ width: 250, flexShrink: 0 }}>
+                <Sidebar onLogout={handleLogout} />
             </Box>
-            <ConfirmDeleteDialog isOpen={openDialog} onClose={() => setOpenDialog(false)} onConfirm={handleDeleteAccount}/>
-        </div>
+
+            <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4,  }}>
+                <Box
+                    component="form"
+                    onSubmit={handleSubmit}
+                    noValidate
+                    autoComplete="off"
+                    id="userProfile"
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                        maxWidth: 500,
+                        width: '100%',
+                        backgroundColor: 'background.paper',
+                        p: 4,
+                        borderRadius: 2,
+                        boxShadow: 3,
+                    }}
+                >
+                    <Typography variant="h4" gutterBottom>
+                        User Profile
+                    </Typography>
+
+                    {error && (
+                        <Typography color="error" id="errorMessage" aria-live="assertive">
+                            {error}
+                        </Typography>
+                    )}
+
+                    <TextField
+                        id="firstNameInput"
+                        label="First Name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        fullWidth
+                    />
+
+                    <TextField
+                        id="lastNameInput"
+                        label="Last Name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        fullWidth
+                    />
+
+                    <TextField
+                        id="emailInput"
+                        label="Email"
+                        value={user.email}
+                        InputProps={{ readOnly: true }}
+                        variant="filled"
+                        fullWidth
+                    />
+
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 15, mt: 2 }}>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            startIcon={<FontAwesomeIcon icon={faSave} />}
+                        >
+                            Update
+                        </Button>
+                        <Button
+                            onClick={() => setOpenDialog(true)}
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            startIcon={<FontAwesomeIcon size="xs" icon={faUserSlash} />}
+                        >
+                            Delete Account
+                        </Button>
+                    </Box>
+                </Box>
+
+                <ConfirmDeleteDialog
+                    isOpen={openDialog}
+                    onClose={() => setOpenDialog(false)}
+                    onConfirm={handleDeleteAccount}
+                />
+            </Box>
+        </Box>
     );
 };
 

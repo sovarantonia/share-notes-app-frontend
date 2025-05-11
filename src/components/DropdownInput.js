@@ -1,6 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {Autocomplete, Button, TextField} from '@mui/material';
-import '../resources/dropdown-input.css'
+import React, {useState} from 'react';
+import {Autocomplete, TextField} from '@mui/material';
 
 const DropdownInput = ({ options = [], onSearch, onSelect, value }) => {
     const [inputValue, setInputValue] = useState('');
@@ -28,9 +27,12 @@ const DropdownInput = ({ options = [], onSearch, onSelect, value }) => {
     };
 
     return (
-        <div className="dropdownInputContainer">
             <Autocomplete
                 id="searchUser"
+                sx={{
+                    width: '100%',
+                    maxWidth: 400,
+                }}
                 options={mappedOptions}
                 getOptionLabel={(option) => option.label}
                 value={selectedMappedOption}
@@ -47,11 +49,15 @@ const DropdownInput = ({ options = [], onSearch, onSelect, value }) => {
                     <TextField
                         {...params}
                         label="Search user"
-                        sx={{ backgroundColor: "white", borderRadius: '7px' }}
+                        sx={{
+                            fontSize: '1rem',
+                            '& .MuiInputBase-input': {
+                                padding: '14px',
+                            },
+                        }}
                     />
                 )}
             />
-        </div>
     );
 };
 

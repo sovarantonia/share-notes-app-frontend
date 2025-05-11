@@ -6,13 +6,24 @@ import {note, getTagsByUser} from "./api";
 import "react-datepicker/dist/react-datepicker.css";
 import {useUser} from "./userContext";
 import 'react-dropdown/style.css';
-import '../resources/create-note.css';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPlus} from "@fortawesome/free-solid-svg-icons";
+import {faPlus, faUpload} from "@fortawesome/free-solid-svg-icons";
 import {format} from "date-fns";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {Autocomplete, Button, Chip, FormControl, InputLabel, MenuItem, Select, TextField} from "@mui/material";
+
+import {
+    Autocomplete,
+    Button,
+    Chip,
+    FormControl,
+    FormLabel,
+    InputLabel,
+    MenuItem,
+    Select,
+    Stack,
+    TextField
+} from "@mui/material";
 
 const CreateNotePage = ({onLogout}) => {
     const [error, setError] = useState('');
@@ -24,9 +35,12 @@ const CreateNotePage = ({onLogout}) => {
     const [selectedTags, setSelectedTags] = useState([]);
     const [uploadedFileName, setUploadedFileName] = useState('');
 
+    const [titleError, setTitleError] = useState('');
+    const [touched, setTouched] = useState(false);
+
     const {user} = useUser();
 
-    const options = Array.from({ length: 10 }, (_, i) => ({
+    const options = Array.from({length: 10}, (_, i) => ({
         label: `${i + 1}`,
         value: i + 1
     }));
@@ -39,7 +53,7 @@ const CreateNotePage = ({onLogout}) => {
                 const response = await getTagsByUser();
                 const tagNames = response.map(tag => tag.name);
                 setTagOptions(tagNames);
-            }catch(error) {
+            } catch (error) {
                 setError("Failed to fetch tags");
             }
         }
@@ -50,7 +64,7 @@ const CreateNotePage = ({onLogout}) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formattedDate = format(date, 'dd-MM-yyyy');
-        if (!title) {
+        if (!title.trim()) {
             setError('Enter a title');
             return;
         }
@@ -76,18 +90,17 @@ const CreateNotePage = ({onLogout}) => {
     };
 
 
-
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         if (!file.name.endsWith('.txt')) {
-            setError('Only .txt files are supported.');
+            alert('Only .txt files are supported.');
             return;
         }
 
         if (file.size > MAX_FILE_SIZE) {
-            setError('File is too large. Maximum allowed size is 1 MB.');
+            alert('File is too large. Maximum allowed size is 1 MB.');
             return;
         }
 
@@ -110,13 +123,33 @@ const CreateNotePage = ({onLogout}) => {
         reader.readAsText(file);
     };
 
+    const handleTitleChange = (e) => {
+        const value = e.target.value;
+        setTitle(value);
+
+        if (touched && !value.trim()) {
+            setTitleError('Title is required');
+        } else {
+            setTitleError('');
+        }
+    };
+
+    const handleTitleBlur = () => {
+        setTouched(true);
+        if (!title.trim()) {
+            setTitleError('Title is required');
+        }
+    };
+
     const capitalizeWords = (text) =>
         text.replace(/\b\w/g, (char) => char.toUpperCase());
 
     return (
-        <div className="create-note-page">
-            <Sidebar onLogout={onLogout}/>
-            <div className="main-content">
+        <Box sx={{display: 'flex'}}>
+            <Box sx={{width: 250, flexShrink: 0}}>
+                <Sidebar onLogout={onLogout}/>
+            </Box>
+            <Box sx={{flexGrow: 1, p: 3}}>
                 <Typography variant="h4" gutterBottom>
                     Create Note
                 </Typography>
@@ -127,33 +160,53 @@ const CreateNotePage = ({onLogout}) => {
                     autoComplete="off"
                     className="note-form"
                     id="noteForm"
+                    sx={{display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 600}}
                 >
                     {error && (
                         <Typography color="error" id="errorMessage" aria-live="assertive">
                             {error}
                         </Typography>
                     )}
+                    <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                        <Button
+                            variant="outlined"
+                            component="label"
+                            startIcon={<FontAwesomeIcon icon={faUpload} />}
+                            sx={{
+                                borderColor: '#4a749f',
+                                color: '#4a749f',
+                                textTransform: 'none',
+                                '&:hover': {
+                                    backgroundColor: '#e3f2fd',
+                                    borderColor: '#4a749f',
+                                },
+                            }}
+                        >
+                            Upload .txt File
+                            <input
+                                type="file"
+                                accept=".txt"
+                                hidden
+                                onChange={handleFileUpload}
+                                id="fileUpload"
+                            />
+                        </Button>
 
-                    <input
-                        type="file"
-                        accept=".txt"
-                        onChange={handleFileUpload}
-                        id="fileUpload"
-                        style={{ marginBottom: '1rem' }}
-                    />
-
-                    {uploadedFileName && (
-                        <Typography variant="body2" sx={{ mb: 2, fontStyle: 'italic' }}>
-                            Loaded from file: {uploadedFileName}
-                        </Typography>
-                    )}
-
+                        {uploadedFileName && (
+                            <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                                {uploadedFileName}
+                            </Typography>
+                        )}
+                    </Stack>
                     <TextField
                         id="titleInput"
                         label="Title"
                         value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                        onChange={handleTitleChange}
+                        onBlur={handleTitleBlur}
                         required
+                        error={!!titleError}
+                        helperText={titleError}
                     />
 
                     <Autocomplete
@@ -169,7 +222,7 @@ const CreateNotePage = ({onLogout}) => {
                         }}
                         renderTags={(value, getTagProps) =>
                             value.map((option, index) => (
-                                <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                                <Chip variant="outlined" label={option} {...getTagProps({index})} />
                             ))
                         }
                         renderInput={(params) => (
@@ -192,20 +245,32 @@ const CreateNotePage = ({onLogout}) => {
                         className="content-input"
                     />
 
-                    <div>
-                        <label htmlFor="datePicker" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                            Date:
-                        </label>
-                        <DatePicker
-                            id="datePicker"
-                            selected={date}
-                            onChange={(date) => setDate(date)}
-                            dateFormat="dd-MM-yyyy"
-                            maxDate={new Date()}
-                            calendarStartDay={1}
-                            className="date-picker"
-                        />
-                    </div>
+
+                    <FormLabel component="legend" sx={{mb: 0.5}}>
+                        Date:
+                    </FormLabel>
+                    <Box
+                        sx={{
+                            borderRadius: 2,
+                            overflow: 'hidden',
+                            '& input': {
+                                borderRadius: 2,
+                                border: '1px solid #ccc',
+                                padding: '10px',
+                            },
+                        }}
+                    >
+                    <DatePicker
+                        id="datePicker"
+                        selected={date}
+                        onChange={(date) => setDate(date)}
+                        dateFormat="dd-MM-yyyy"
+                        maxDate={new Date()}
+                        calendarStartDay={1}
+                        className="date-picker"
+                    />
+                    </Box>
+
 
                     <FormControl required>
                         <InputLabel id="gradeDropdownLabel">Grade</InputLabel>
@@ -228,13 +293,15 @@ const CreateNotePage = ({onLogout}) => {
                         variant="contained"
                         type="submit"
                         color="primary"
-                        startIcon={<FontAwesomeIcon icon={faPlus} />}
+                        startIcon={<FontAwesomeIcon icon={faPlus}/>}
                     >
                         Submit
                     </Button>
                 </Box>
-            </div>
-        </div>
+            </Box>
+
+
+        </Box>
     );
 };
 

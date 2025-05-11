@@ -1,12 +1,11 @@
 import React, {useEffect, useState} from "react";
 import Sidebar from "./Sidebar";
-import '../resources/homepage.css';
 import {useUser} from "./userContext";
 import {Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 import {latestNotes} from "./api";
-import "../resources/table.css";
 import NotesChart from "./NotesChart";
 import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 
 const HomePage = () => {
     const {logout} = useUser();
@@ -32,72 +31,75 @@ const HomePage = () => {
     }, []);
 
     return (
-        <div className="home-page">
-            <Sidebar onLogout={handleLogout}/>
-            <div className="main-content">
-                <NotesChart/>
-                {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
-                <Typography variant="h4">Latest notes</Typography>
-                <TableContainer id="recentNotesTable">
-                    <Table sx={{width: '70%', margin: '20px 0', borderCollapse: 'collapse'}} aria-label="latest-notes">
+        <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f1f4f9' }}>
+
+            <Box sx={{ width: 250, flexShrink: 0 }}>
+                <Sidebar onLogout={handleLogout} />
+            </Box>
+
+            <Box sx={{ flexGrow: 1, p: 3 }}>
+                <NotesChart />
+
+                {error && (
+                    <Typography color="error" id="errorMessage" aria-live="assertive" sx={{ my: 2 }}>
+                        {error}
+                    </Typography>
+                )}
+
+                <Typography variant="h4" gutterBottom>
+                    Latest notes
+                </Typography>
+
+                <TableContainer
+                    id="recentNotesTable"
+                    sx={{
+                        mt: 2,
+                        backgroundColor: 'background.paper',
+                        borderRadius: 2,
+                        boxShadow: 1,
+                    }}
+                >
+                    <Table aria-label="latest-notes">
                         <TableHead>
                             <TableRow>
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Title</TableCell>
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Content</TableCell>
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Date</TableCell>
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Grade</TableCell>
+                                <TableCell>Title</TableCell>
+                                <TableCell>Content</TableCell>
+                                <TableCell>Date</TableCell>
+                                <TableCell>Grade</TableCell>
                             </TableRow>
                         </TableHead>
+
                         <TableBody>
-                            {notes.map((item) => (
-                                <TableRow
-                                    key={item.id}
-                                >
-                                    <TableCell sx={{
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>{item.title}</TableCell>
-                                    <TableCell sx={{
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>{item.text}</TableCell>
-                                    <TableCell sx={{padding: '12px', border: '1px solid #ddd'}}>{item.date}</TableCell>
-                                    <TableCell sx={{padding: '12px', border: '1px solid #ddd'}}>{item.grade}</TableCell>
+                            {notes.length === 0 ? (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={4}
+                                        sx={{
+                                            textAlign: 'center',
+                                            py: 4,
+                                            fontStyle: 'italic',
+                                            color: 'text.secondary',
+                                            border: 'none',
+                                        }}
+                                    >
+                                        No notes to display. Start creating notes now!
+                                    </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                notes.map((item) => (
+                                    <TableRow key={item.id} hover>
+                                        <TableCell>{item.title}</TableCell>
+                                        <TableCell>{item.text}</TableCell>
+                                        <TableCell>{item.date}</TableCell>
+                                        <TableCell>{item.grade}</TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>
-
-
-            </div>
-        </div>
+            </Box>
+        </Box>
     );
 };
 

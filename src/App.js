@@ -13,9 +13,13 @@ import AboutPage from "./components/About";
 import RequestsPage from "./components/RequestsPage";
 import FriendsPage from "./components/FriendsPage";
 import SharesPage from "./components/SharesPage";
+import {CssBaseline, ThemeProvider} from "@mui/material";
+import theme from './components/theme';
 
 function App() {
   return (
+      <ThemeProvider theme={theme}>
+          <CssBaseline />
       <UserProvider>
         <Router>
           <Routes>
@@ -82,6 +86,7 @@ function App() {
           </Routes>
         </Router>
       </UserProvider>
+      </ThemeProvider>
   );
 }
 

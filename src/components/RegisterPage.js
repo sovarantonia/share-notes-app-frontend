@@ -1,146 +1,204 @@
-import React, {useState} from 'react';
-import Header from "./Header";
+import React, {useEffect, useState} from 'react';
 import {register} from "./api";
-import {useNavigate} from 'react-router-dom';
-import '../resources/register-page.css';
-import '../resources/header.css';
-import sign_up from '../resources/sign_up.svg';
+import {Link, useNavigate} from 'react-router-dom';
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import {Button, InputAdornment, TextField} from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import {Visibility, VisibilityOff} from "@mui/icons-material";
+import register_avatar from '../resources/register-avatar.svg';
+
+const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 const RegisterPage = () => {
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [error, setError] = useState('');
-    const history = useNavigate();
+    const [form, setForm] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+    });
+
+    const [touched, setTouched] = useState({});
+    const [errors, setErrors] = useState({});
+    const [formValid, setFormValid] = useState(false);
+    const [submitError, setSubmitError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
+
+    const handleChange = (field, value) => {
+        setForm((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleBlur = (field) => {
+        setTouched((prev) => ({ ...prev, [field]: true }));
+    };
+
+    const handleTogglePassword = () => {
+        setShowPassword((prev) => !prev);
+    };
+
+    useEffect(() => {
+        const newErrors = {};
+        if (!form.firstName) newErrors.firstName = 'First name is required.';
+        if (!form.lastName) newErrors.lastName = 'Last name is required.';
+        if (!form.email) newErrors.email = 'Email is required.';
+        else if (!validateEmail(form.email)) newErrors.email = 'Invalid email format.';
+        if (!form.password) newErrors.password = 'Password is required.';
+        else if (form.password.length < 7) newErrors.password = 'Minimum 7 characters.';
+        if (!form.confirmPassword) newErrors.confirmPassword = 'Confirm your password.';
+        else if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Passwords do not match.';
+        setErrors(newErrors);
+        setFormValid(Object.keys(newErrors).length === 0);
+    }, [form]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-
-        if (!validateForm()) return;
+        setSubmitError('');
+        if (!formValid) return;
 
         try {
-            await register(firstName, lastName, email, password);
+            await register({firstName: form.firstName,
+                lastName: form.lastName,
+                email: form.email,
+                password: form.password});
             alert('Registration successful! Please login with your credentials.');
-            history('/login');
+            navigate('/login');
         } catch (error) {
             try {
                 const parsedError = JSON.parse(error.message);
-                setError(parsedError || 'Something went wrong.');
-            } catch (parseError) {
-                setError('An unexpected error occurred.');
+                setSubmitError(parsedError || 'Something went wrong.');
+            } catch {
+                setSubmitError('An unexpected error occurred.');
             }
         }
     };
 
-    const validateForm = () => {
-        if (!firstName || !lastName || !email || !password || !confirmPassword) {
-            setError('All fields are required.');
-            return false;
-        }
-        if (!validateEmail(email)) {
-            setError('Invalid email format.');
-            return false;
-        }
-        if (password.length < 6) {
-            setError('Password must be at least 6 characters long.');
-            return false;
-        }
-        if (password !== confirmPassword) {
-            setError('Passwords do not match.');
-            return false;
-        }
-        return true;
-    };
-
-    const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-    const handleBlur = (field) => {
-        if (field === 'email' && !validateEmail(email)) {
-            setError('Invalid email format');
-        } else if (field === 'password' && password.length < 6) {
-            setError('Password must be at least 6 characters long');
-        } else if (field === 'confirmPassword' && password !== confirmPassword) {
-            setError('Passwords do not match');
-        } else {
-            setError('');
-        }
-    };
 
     return (
-        <div className="container">
-            <Header/>
-            <form onSubmit={handleSubmit} className="form" id="registerForm">
-                {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
-                <h2>Register</h2>
-                <div className="form-group">
-                    <label htmlFor="firstName">First Name:</label>
-                    <input
-                        type="text"
-                        id="firstName"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        onBlur={() => handleBlur('firstName')}
-                        placeholder="First name"
-                        required
-                    />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="lastName">Last Name:</label>
-                    <input
-                        type="text"
-                        id="lastName"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        onBlur={() => handleBlur('lastName')}
-                        placeholder="Last name"
-                        required
-                    />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="email">Email:</label>
-                    <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onBlur={() => handleBlur('email')}
-                        placeholder="Email"
-                        required
-                    />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="password">Password:</label>
-                    <input
-                        type="password"
-                        id="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        onBlur={() => handleBlur('password')}
-                        placeholder="Password"
-                        required
-                    />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="confirmPassword">Confirm Password:</label>
-                    <input
-                        type="password"
-                        id="confirmPassword"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        onBlur={() => handleBlur('confirmPassword')}
-                        placeholder="Confirm password"
-                        required
-                    />
-                </div>
-                <button type="submit" id="registerButton">Register</button>
-                <a onClick={() => history('/login')}>Already have an account? Login here</a>
-            </form>
-            <img src={sign_up} alt="Sign Up" className="signup-image"/>
-        </div>
+        <Box
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
+            autoComplete="off"
+            sx={{
+                maxWidth: 450,
+                margin: '20px auto',
+                padding: 4,
+                backgroundColor: 'background.paper',
+                borderRadius: 3,
+                boxShadow: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+            }}
+        >
+            <Box component="img" src={register_avatar} alt="App Logo" sx={{ height: 85,mb: 1 }} />
+            <Typography variant="h4" sx={{ textAlign: 'center' }}>
+                Register
+            </Typography>
+
+            {submitError && (
+                <Typography color="error" id="errorMessage" aria-live="assertive" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                    {submitError}
+                </Typography>
+            )}
+
+            <TextField
+                label="First name"
+                value={form.firstName}
+                onChange={(e) => handleChange('firstName', e.target.value)}
+                onBlur={() => handleBlur('firstName')}
+                error={touched.firstName && !!errors.firstName}
+                helperText={touched.firstName && errors.firstName}
+                fullWidth
+                required
+            />
+
+            <TextField
+                label="Last name"
+                value={form.lastName}
+                onChange={(e) => handleChange('lastName', e.target.value)}
+                onBlur={() => handleBlur('lastName')}
+                error={touched.lastName && !!errors.lastName}
+                helperText={touched.lastName && errors.lastName}
+                fullWidth
+                required
+            />
+
+            <TextField
+                label="Email"
+                value={form.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                onBlur={() => handleBlur('email')}
+                error={touched.email && !!errors.email}
+                helperText={touched.email && errors.email}
+                fullWidth
+                required
+            />
+
+            <TextField
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={(e) => handleChange('password', e.target.value)}
+                onBlur={() => handleBlur('password')}
+                error={touched.password && !!errors.password}
+                helperText={touched.password && errors.password}
+                fullWidth
+                required
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <IconButton onClick={handleTogglePassword} edge="end" aria-label="toggle password visibility">
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    ),
+                }}
+            />
+
+            <TextField
+                label="Confirm Password"
+                type={showPassword ? 'text' : 'password'}
+                value={form.confirmPassword}
+                onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                onBlur={() => handleBlur('confirmPassword')}
+                error={touched.confirmPassword && !!errors.confirmPassword}
+                helperText={touched.confirmPassword && errors.confirmPassword}
+                fullWidth
+                required
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <IconButton onClick={handleTogglePassword} edge="end" aria-label="toggle password visibility">
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    ),
+                }}
+            />
+
+            <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                disabled={!formValid}
+                sx={{ mx: 'auto'}}
+            >
+                Register
+            </Button>
+
+            <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
+                Already have an account?{' '}
+                <Link to="/login" style={{ color: '#1976d2', textDecoration: 'none' }}>
+                    Login
+                </Link>
+            </Typography>
+        </Box>
     );
 };
+
 
 export default RegisterPage;

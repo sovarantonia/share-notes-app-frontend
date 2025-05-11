@@ -1,6 +1,5 @@
 import React from 'react';
 
-import '../resources/user-profile.css'
 import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
 
 const ConfirmDeleteDialog = ({isOpen, onClose, onConfirm}) => {

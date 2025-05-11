@@ -1,32 +1,51 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {login} from './api';
-import '../resources/login-page.css';
-import '../resources/header.css'
-import login_image from "../resources/login.svg";
-import Header from './Header';
-import {useNavigate} from "react-router-dom";
+import {useNavigate, Link} from "react-router-dom";
 import {useUser} from './userContext';
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import {Button, InputAdornment, TextField} from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import {Visibility, VisibilityOff} from "@mui/icons-material";
+import login_avatar from '../resources/login-avatar.svg';
+import PublicHeader from "./Header";
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [touched, setTouched] = useState({ email: false, password: false });
+    const [formValid, setFormValid] = useState(false);
+
     const navigate = useNavigate();
-    const {login: setUser} = useUser();
+    const { login: setUser } = useUser();
+
+    const handleTogglePassword = () => setShowPassword((show) => !show);
+
+    const handleBlur = (field) => {
+        setTouched((prev) => ({ ...prev, [field]: true }));
+    };
+
+    useEffect(() => {
+        setFormValid(email.trim() !== '' && password.trim() !== '');
+    }, [email, password]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!email || !password) {
-            setError('Enter your email and password');
+        setError('');
+
+        if (!formValid) {
+            setTouched({ email: true, password: true });
             return;
         }
 
         try {
             const response = await login(email, password);
-            const {userInfo, tokenValue} = response;
-            const {email: userEmail, id: id, firstName, lastName} = userInfo;
+            const { userInfo, tokenValue } = response;
+            const { email: userEmail, id, firstName, lastName } = userInfo;
 
-            setUser({email: userEmail, id: id, firstName, lastName}, tokenValue);
+            setUser({ email: userEmail, id, firstName, lastName }, tokenValue);
             navigate('/home');
         } catch (error) {
             setError('Login failed. Please check your credentials.');
@@ -34,20 +53,92 @@ const LoginPage = () => {
     };
 
     return (
-        <div className={"container"}>
-            <Header/>
-            <form onSubmit={handleSubmit} className={"form"} id="loginForm">
-                {error && <div className="error" id="errorMessage">{error}</div>}
-                <h2>Login</h2>
-                <input type="email" id="emailInput" value={email} onChange={(e) => setEmail(e.target.value)}
-                       placeholder="Email" required/>
-                <input type="password" id="passwordInput" value={password} onChange={(e) => setPassword(e.target.value)}
-                       placeholder="Password" required/>
-                <button type="submit" id="loginButton">Login</button>
-                <a onClick={() => window.location.href = '/register'}>Don't have an account? Register now!</a>
-            </form>
-            <img src={login_image}/>
-        </div>
+        <Box>
+            <PublicHeader />
+            <Box
+                component="form"
+                onSubmit={handleSubmit}
+                noValidate
+                autoComplete="off"
+                sx={{
+                    maxWidth: 400,
+                    margin: '80px auto',
+                    padding: 4,
+                    backgroundColor: 'background.paper',
+                    borderRadius: 3,
+                    boxShadow: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                }}
+            >
+                <Box component="img" src={login_avatar} alt="App Logo" sx={{ height: 85,mb: 1 }} />
+                <Typography variant="h4" sx={{ textAlign: 'center' }}>
+                    Login
+                </Typography>
+
+                {error && (
+                    <Typography color="error" aria-live="assertive" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                        {error}
+                    </Typography>
+                )}
+
+                <TextField
+                    id="emailInput"
+                    label="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => handleBlur('email')}
+                    error={touched.email && !email}
+                    helperText={touched.email && !email ? 'Email is required' : ''}
+                    fullWidth
+                    required
+                />
+
+                <TextField
+                    label="Password"
+                    variant="outlined"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onBlur={() => handleBlur('password')}
+                    error={touched.password && !password}
+                    helperText={touched.password && !password ? 'Password is required' : ''}
+                    fullWidth
+                    required
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    onClick={handleTogglePassword}
+                                    edge="end"
+                                    aria-label="toggle password visibility"
+                                >
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    }}
+                />
+
+                <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={!formValid}
+                    sx={{ mx: 'auto', mt: 1 }}
+                >
+                    Login
+                </Button>
+
+                <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
+                    Don't have an account?{' '}
+                    <Link to="/register" style={{ color: '#1976d2', textDecoration: 'none' }}>
+                        Register
+                    </Link>
+                </Typography>
+            </Box>
+        </Box>
+
     );
 };
 

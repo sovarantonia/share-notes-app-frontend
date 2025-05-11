@@ -5,9 +5,9 @@ import Sidebar from "./Sidebar";
 import {Button, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs} from "@mui/material";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faCheck, faTimes} from "@fortawesome/free-solid-svg-icons";
-import '../resources/requests-page.css';
 import {debounce} from "lodash";
 import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 
 const RequestsPage = () => {
     const {logout} = useUser();
@@ -66,153 +66,116 @@ const RequestsPage = () => {
     }, 300);
 
     return (
-        <div className="main-content">
-            <div className="requestLists">
-                <Sidebar onLogout={handleLogout}/>
-                {error && <div className="error" aria-live="assertive" id="errorMessage">{error}</div>}
-                <Tabs value={showTable} onChange={(e, newValue) => setShowTable(newValue)}>
-                    <Tab label="Received Requests"/>
-                    <Tab label="Sent requests"/>
+        <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f1f4f9' }}>
+            {/* Sidebar */}
+            <Box sx={{ width: 250, flexShrink: 0 }}>
+                <Sidebar onLogout={handleLogout} />
+            </Box>
+
+            {/* Main Content */}
+            <Box sx={{ flexGrow: 1, p: 3 }}>
+                {error && (
+                    <Typography color="error" id="errorMessage" aria-live="assertive" sx={{ mb: 2 }}>
+                        {error}
+                    </Typography>
+                )}
+
+                <Tabs value={showTable} onChange={(e, newValue) => setShowTable(newValue)} sx={{ mb: 3 }}>
+                    <Tab label="Received Requests" />
+                    <Tab label="Sent Requests" />
                 </Tabs>
-                {showTable===0 && requests.length > 0 && (<TableContainer id="receivedRequests">
-                    <Table sx={{width: '70%', margin: '20px 0', borderCollapse: 'collapse'}}
-                           aria-label="received-requests">
-                        <TableHead>
-                            <TableRow>
 
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Sender</TableCell>
-
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Status</TableCell>
-
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Sent at</TableCell>
-
-                                <TableCell sx={{
-                                    backgroundColor: '#F2A2B1',
-                                    fontWeight: 'bold',
-                                    padding: '12px',
-                                    border: '1px solid #ddd'
-                                }}>Options</TableCell>
-
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {requests.map((item) => (
-                                <TableRow
-                                    key={item.id}
-                                >
-                                    <TableCell sx={{
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>{`${item.sender.firstName} ${item.sender.lastName} (${item.sender.email})`}</TableCell>
-
-                                    <TableCell sx={{
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>{item.status}</TableCell>
-
-                                    <TableCell
-                                        sx={{padding: '12px', border: '1px solid #ddd'}}>{item.sentAt}</TableCell>
-
-                                    <TableCell sx={{padding: '12px', border: '1px solid #ddd'}}>
-                                        <Button id="acceptButton" size="2xl"
-                                                onClick={() => handleAcceptRequest(item.id)}><FontAwesomeIcon
-                                            icon={faCheck}/>Accept</Button>
-                                        <Button id="declineButton" size="2xl"
-                                                onClick={() => handleDeclineRequest(item.id)}><FontAwesomeIcon
-                                            icon={faTimes}/>Decline</Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>)}
-
-
-                {showTable===1 && sentRequests.length > 0 && (<TableContainer id="sentRequests">
-                        <Table sx={{width: '70%', margin: '20px 0', borderCollapse: 'collapse'}}
-                               aria-label="sent-requests">
+                {/* Received Requests Table */}
+                {showTable === 0 && requests.length > 0 && (
+                    <TableContainer id="receivedRequests" sx={{ maxWidth: 1000 }}>
+                        <Table aria-label="received-requests">
                             <TableHead>
                                 <TableRow>
-
-                                    <TableCell sx={{
-                                        backgroundColor: '#F2A2B1',
-                                        fontWeight: 'bold',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>Receiver</TableCell>
-
-                                    <TableCell sx={{
-                                        backgroundColor: '#F2A2B1',
-                                        fontWeight: 'bold',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>Status</TableCell>
-
-                                    <TableCell sx={{
-                                        backgroundColor: '#F2A2B1',
-                                        fontWeight: 'bold',
-                                        padding: '12px',
-                                        border: '1px solid #ddd'
-                                    }}>Sent at</TableCell>
-
+                                    {['Sender', 'Status', 'Sent At', 'Options'].map(header => (
+                                        <TableCell key={header}>
+                                            {header}
+                                        </TableCell>
+                                    ))}
                                 </TableRow>
                             </TableHead>
-
                             <TableBody>
-                                {sentRequests.map((item) => (
-                                    <TableRow
-                                        key={item.id}
-                                    >
-                                        <TableCell sx={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            padding: '12px',
-                                            border: '1px solid #ddd'
-                                        }}>{`${item.receiver.firstName} ${item.receiver.lastName} (${item.receiver.email})`}</TableCell>
-                                        <TableCell sx={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                            padding: '12px',
-                                            border: '1px solid #ddd'
-                                        }}>{item.status}</TableCell>
-                                        <TableCell
-                                            sx={{padding: '12px', border: '1px solid #ddd'}}>{item.sentAt}</TableCell>
-
+                                {requests.map((item) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell>{`${item.sender.firstName} ${item.sender.lastName} (${item.sender.email})`}</TableCell>
+                                        <TableCell>{item.status}</TableCell>
+                                        <TableCell>{item.sentAt}</TableCell>
+                                        <TableCell>
+                                            <Button
+                                                id="acceptButton"
+                                                size="small"
+                                                onClick={() => handleAcceptRequest(item.id)}
+                                                sx={{
+                                                    backgroundColor: '#2db34b',
+                                                    color: '#fff',
+                                                    mr: 1,
+                                                    '&:hover': { backgroundColor: '#218838' },
+                                                }}
+                                            >
+                                                <FontAwesomeIcon icon={faCheck} style={{ marginRight: 4 }} />
+                                                Accept
+                                            </Button>
+                                            <Button
+                                                id="declineButton"
+                                                size="small"
+                                                onClick={() => handleDeclineRequest(item.id)}
+                                                sx={{
+                                                    backgroundColor: '#f44336',
+                                                    color: '#fff',
+                                                    '&:hover': { backgroundColor: '#bf342a' },
+                                                }}
+                                            >
+                                                <FontAwesomeIcon icon={faTimes} style={{ marginRight: 4 }} />
+                                                Decline
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
                     </TableContainer>
                 )}
-                {showTable === 0 && requests.length === 0 && <Typography>No received requests.</Typography>}
-                {showTable === 1 && sentRequests.length === 0 && <Typography>No sent requests.</Typography>}
-            </div>
-        </div>
 
-    )
+                {/* Sent Requests Table */}
+                {showTable === 1 && sentRequests.length > 0 && (
+                    <TableContainer id="sentRequests" sx={{ maxWidth: 1000 }}>
+                        <Table aria-label="sent-requests">
+                            <TableHead>
+                                <TableRow>
+                                    {['Receiver', 'Status', 'Sent At'].map(header => (
+                                        <TableCell key={header}>
+                                            {header}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {sentRequests.map((item) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell>{`${item.receiver.firstName} ${item.receiver.lastName} (${item.receiver.email})`}</TableCell>
+                                        <TableCell>{item.status}</TableCell>
+                                        <TableCell>{item.sentAt}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+
+                {/* Empty states */}
+                {showTable === 0 && requests.length === 0 && (
+                    <Typography>No received requests.</Typography>
+                )}
+                {showTable === 1 && sentRequests.length === 0 && (
+                    <Typography>No sent requests.</Typography>
+                )}
+            </Box>
+        </Box>
+    );
 }
 
 export default RequestsPage;
