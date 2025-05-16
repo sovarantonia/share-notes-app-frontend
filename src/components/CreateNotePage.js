@@ -13,6 +13,7 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
 import {
+    Alert,
     Autocomplete,
     Button,
     Chip,
@@ -20,7 +21,7 @@ import {
     FormLabel,
     InputLabel,
     MenuItem,
-    Select,
+    Select, Snackbar,
     Stack,
     TextField
 } from "@mui/material";
@@ -37,6 +38,8 @@ const CreateNotePage = ({onLogout}) => {
 
     const [titleError, setTitleError] = useState('');
     const [touched, setTouched] = useState(false);
+
+    const [openSnackbar, setOpenSnackbar] = useState(false);
 
     const {user} = useUser();
 
@@ -72,7 +75,7 @@ const CreateNotePage = ({onLogout}) => {
         try {
             await note(user.userId, title, text, formattedDate, grade, selectedTags);
 
-            alert('Note was created');
+            setOpenSnackbar(true);
             setTitle('');
             setText('');
             setDate(new Date());
@@ -80,6 +83,7 @@ const CreateNotePage = ({onLogout}) => {
             setSelectedTags([]);
             setError('');
             setUploadedFileName('');
+
         } catch (error) {
             setError('An unexpected error occurred.');
         }
@@ -298,9 +302,22 @@ const CreateNotePage = ({onLogout}) => {
                         Submit
                     </Button>
                 </Box>
+                <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={5000}
+                    onClose={() => setOpenSnackbar(false)}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <Alert onClose={() => setOpenSnackbar(false)} severity="success" sx={{
+                        width: '100%',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        backgroundColor: 'rgba(45,179,75,0.27)',
+                    }}>
+                        Note created successfully!
+                    </Alert>
+                </Snackbar>
             </Box>
-
-
         </Box>
     );
 };

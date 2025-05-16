@@ -8,7 +8,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faSave, faUserSlash} from "@fortawesome/free-solid-svg-icons";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {Button, Card, CardContent, Stack, TextField} from "@mui/material";
+import {Alert, Button, Snackbar, TextField} from "@mui/material";
 
 const UserProfile = () => {
     const [error, setError] = useState('');
@@ -25,10 +25,10 @@ const UserProfile = () => {
     const handleDeleteAccount = async () => {
         try {
             await deleteAccount(userId);
-            alert('Account deleted successfully');
+            showSnackbar('Account deleted successfully', 'success');
             logout();
         } catch (error) {
-            setError('Error deleting account');
+            showSnackbar('Error deleting account', 'error');
         }
         finally {
             setOpenDialog(false);
@@ -54,10 +54,20 @@ const UserProfile = () => {
 
             update(updatedUser)
 
-            alert('Profile updated successfully');
+            showSnackbar('Profile updated successfully', 'success');
         } catch (error) {
-            setError('Error updating profile');
+            showSnackbar('Error updating the profile', 'error');
         }
+    };
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // or 'error'
+
+    const showSnackbar = (message, severity = 'success') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
     };
 
     return (
@@ -147,6 +157,28 @@ const UserProfile = () => {
                     onConfirm={handleDeleteAccount}
                 />
             </Box>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={5000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity={snackbarSeverity}
+                    sx={{
+                        width: '100%',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        backgroundColor:
+                        snackbarSeverity === 'success' ? 'rgba(45,179,75,0.27)' :
+                        snackbarSeverity === 'error' ? 'rgba(211,47,47,0.29)' :
+                        undefined,
+                    }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

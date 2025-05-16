@@ -3,7 +3,7 @@ import {register} from "./api";
 import {Link, useNavigate} from 'react-router-dom';
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import {Button, InputAdornment, TextField} from "@mui/material";
+import {Alert, Button, InputAdornment, Snackbar, TextField} from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import {Visibility, VisibilityOff} from "@mui/icons-material";
 import register_avatar from '../resources/register-avatar.svg';
@@ -24,6 +24,17 @@ const RegisterPage = () => {
     const [formValid, setFormValid] = useState(false);
     const [submitError, setSubmitError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+    const showSnackbar = (message, severity = 'success') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
+
     const navigate = useNavigate();
 
     const handleChange = (field, value) => {
@@ -58,19 +69,34 @@ const RegisterPage = () => {
         if (!formValid) return;
 
         try {
-            await register({firstName: form.firstName,
-                lastName: form.lastName,
-                email: form.email,
-                password: form.password});
-            alert('Registration successful! Please login with your credentials.');
-            navigate('/login');
+            await register(
+                form.firstName,
+                form.lastName,
+                form.email,
+                form.password
+            );
+
+
+
+            showSnackbar('Registration successful! Please login with your credentials.', 'success');
+            setTimeout(() => {
+                navigate('/login');
+            }, 3000);
         } catch (error) {
+            let extractedMessage = 'An unexpected error occurred';
+
             try {
                 const parsedError = JSON.parse(error.message);
-                setSubmitError(parsedError || 'Something went wrong.');
+                extractedMessage =
+                    typeof parsedError === 'string'
+                        ? parsedError
+                        : parsedError.error || extractedMessage;
             } catch {
-                setSubmitError('An unexpected error occurred.');
+                // fallbackMessage already set
             }
+
+            setSubmitError(extractedMessage);
+            showSnackbar(extractedMessage, 'error');
         }
     };
 
@@ -196,6 +222,28 @@ const RegisterPage = () => {
                     Login
                 </Link>
             </Typography>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity={snackbarSeverity}
+                    sx={{
+                        width: '100%',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        backgroundColor:
+                            snackbarSeverity === 'success' ? 'rgba(45,179,75,0.27)' :
+                                snackbarSeverity === 'error' ? 'rgba(211,47,47,0.29)' :
+                                    undefined,
+                    }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

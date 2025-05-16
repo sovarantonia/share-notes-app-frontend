@@ -14,7 +14,7 @@ import {faSave, faTimes} from "@fortawesome/free-solid-svg-icons";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
-const UpdateNoteDialog = ({open, onClose, noteId, onUpdate}) => {
+const UpdateNoteDialog = ({open, onClose, noteId, onUpdate, showSnackbar}) => {
         const [note, setNote] = useState(null);
         const [grade, setGrade] = useState('');
         const options = Array.from({length: 10}, (_, i) => ({
@@ -61,9 +61,11 @@ const UpdateNoteDialog = ({open, onClose, noteId, onUpdate}) => {
                     );
                     setError('')
                     onUpdate();
+                    showSnackbar('Note updated successfully!', 'success');
                     onClose();
                 } catch (err) {
                     setError('Failed to update note');
+                    showSnackbar('Failed to update the note!', 'error');
                 }
             }
         };

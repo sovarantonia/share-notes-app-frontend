@@ -6,18 +6,18 @@ import {faEraser, faTimes} from "@fortawesome/free-solid-svg-icons";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
-const DeleteNoteDialog = ({open, onClose, noteId, onUpdate}) => {
+const DeleteNoteDialog = ({open, onClose, noteId, onUpdate, showSnackbar}) => {
     const [error, setError] = useState('');
 
     const handleDeleteNote = async () => {
         try {
             await deleteNote(noteId);
-            alert('Note was deleted')
             setError('')
+            showSnackbar('Note deleted successfully!', 'success');
             onUpdate();
 
         } catch (error) {
-            setError('Error deleting the note');
+            showSnackbar('Error deleting the note', 'error');
         }
     }
 
@@ -51,6 +51,7 @@ const DeleteNoteDialog = ({open, onClose, noteId, onUpdate}) => {
                     </Button>
 
                 </Box>
+
 
             </Box>
 

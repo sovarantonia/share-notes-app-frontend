@@ -3,7 +3,19 @@ import Sidebar from "./Sidebar";
 import React, {useEffect, useState} from "react";
 import {getTagsByUser, searchNotes} from "./api";
 import {debounce} from 'lodash';
-import {Button, Card, CardActions, CardContent, Checkbox, Chip, FormControlLabel, Grid} from "@mui/material";
+import {
+    Alert,
+    Button,
+    Card,
+    CardActions,
+    CardContent,
+    Checkbox,
+    Chip,
+    FormControlLabel,
+    Grid,
+    Snackbar,
+    SnackbarContent
+} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import DownloadDialog from "./DownloadDialog";
@@ -30,6 +42,16 @@ const ViewNotes = () => {
     const [open, setOpen] = useState(false);
     const [selectedNoteId, setSelectedNoteId] = useState(null);
     const [activeDialog, setActiveDialog] = useState(null);
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+    const showSnackbar = (message, severity = 'success') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
 
     const handleLogout = () => {
         logout();
@@ -211,24 +233,42 @@ const ViewNotes = () => {
                 </Grid>
 
                 {/* Download Actions */}
-                {selectedNoteIds.length > 0 && (
-                    <Box sx={{ mt: 3 }}>
-                        <Typography variant="body2" sx={{ mr: 2, display: 'inline-block' }}>
-                            {selectedNoteIds.length} note{selectedNoteIds.length > 1 ? 's' : ''} selected
-                        </Typography>
-                        <Button variant="contained" onClick={() => setOpenDownloadDialog(true)}>
-                            Download Selected
-                        </Button>
-                        <DownloadDialog
-                            open={openDownloadDialog}
-                            onClose={() => setOpenDownloadDialog(false)}
-                            selectedNotesIds={selectedNoteIds}
-                        />
-                        <Button variant="text" onClick={() => setSelectedNoteIds([])} sx={{ ml: 2 }}>
-                            Clear Selection
-                        </Button>
-                    </Box>
-                )}
+                <Snackbar
+                    open={selectedNoteIds.length > 0}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                >
+                    <SnackbarContent
+                        sx={{
+                            backgroundColor: 'background.default',
+                            color: 'text.primary',
+                            borderRadius: 2,
+                            boxShadow: 3,
+                            px: 3,
+                            py: 1.5,
+                        }}
+                        message={
+                            <Typography variant="body2">
+                                {selectedNoteIds.length} note{selectedNoteIds.length > 1 ? 's' : ''} selected
+                            </Typography>
+                        }
+                        action={
+                            <>
+                                <Button size="small" variant="contained" onClick={() => setOpenDownloadDialog(true)}>
+                                    Download
+                                </Button>
+                                <Button size="small" color="inherit" onClick={() => setSelectedNoteIds([])} sx={{ ml: 1 }}>
+                                    Clear
+                                </Button>
+                            </>
+                        }
+                    />
+                </Snackbar>
+
+                <DownloadDialog
+                    open={openDownloadDialog}
+                    onClose={() => setOpenDownloadDialog(false)}
+                    selectedNotesIds={selectedNoteIds}
+                />
 
                 {/* Dialogs */}
                 {selectedNoteId !== null && (
@@ -238,20 +278,46 @@ const ViewNotes = () => {
                             onClose={handleCloseDialog}
                             noteId={selectedNoteId}
                             onUpdate={onUpdate}
+                            showSnackbar={showSnackbar}
                         />
                         <DeleteNoteDialog
                             open={open && activeDialog === "delete-dialog"}
                             onClose={handleCloseDialog}
                             noteId={selectedNoteId}
                             onUpdate={onUpdate}
+                            showSnackbar={showSnackbar}
                         />
                         <ShareDialog
                             open={open && activeDialog === "share-dialog"}
                             onClose={handleCloseDialog}
                             noteId={selectedNoteId}
+                            showSnackbar={showSnackbar}
                         />
                     </>
                 )}
+
+                <Snackbar
+                    open={snackbarOpen}
+                    autoHideDuration={5000}
+                    onClose={() => setSnackbarOpen(false)}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <Alert
+                        onClose={() => setSnackbarOpen(false)}
+                        severity={snackbarSeverity}
+                        sx={{
+                            width: '100%',
+                            fontSize: '1rem',
+                            fontWeight: 'bold',
+                            backgroundColor:
+                                snackbarSeverity === 'success' ? 'rgba(45,179,75,0.27)' :
+                                    snackbarSeverity === 'error' ? 'rgba(211,47,47,0.29)' :
+                                        undefined,
+                        }}
+                    >
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
             </Box>
         </Box>
     );

@@ -8,7 +8,7 @@ import {faArrowUpRightFromSquare, faTimes} from "@fortawesome/free-solid-svg-ico
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
-const ShareDialog = ({open, onClose, noteId}) => {
+const ShareDialog = ({open, onClose, noteId, showSnackbar}) => {
     const [friends, setFriends] = useState([]);
     const [error, setError] = useState('');
     const [selectedUser, setSelectedUser] = useState(null);
@@ -29,7 +29,7 @@ const ShareDialog = ({open, onClose, noteId}) => {
         try {
             await shareNote(noteId, receiverEmail)
         } catch (error) {
-            setError('Error sharing the note')
+            showSnackbar('Error sharing the note', 'error')
         }
     }
 
@@ -38,10 +38,10 @@ const ShareDialog = ({open, onClose, noteId}) => {
             const receiverEmail = selectedUser.email;
             shareNoteToFriend(noteId, receiverEmail)
             setError('')
-            alert("Note was shared")
+            showSnackbar("Note was shared", 'success')
             onClose();
         } else {
-            setError('Select a friend')
+            showSnackbar('Select a friend', 'error')
         }
     }
     return (

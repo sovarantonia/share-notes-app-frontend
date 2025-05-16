@@ -98,13 +98,15 @@ const NoteFilterBar = ({
                                     {label}
                                 </FormLabel>
                                 <DatePicker
-                                    value={value}
+                                    selected={value}
                                     onChange={onChange}
                                     slotProps={{
                                         textField: {
                                             fullWidth: true,
                                         },
                                     }}
+                                    dateFormat="dd-MM-yyyy"
+                                    placeholderText={`Select ${label.toLowerCase()} date`}
                                 />
                             </Box>
                         ))}

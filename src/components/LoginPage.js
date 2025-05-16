@@ -4,7 +4,7 @@ import {useNavigate, Link} from "react-router-dom";
 import {useUser} from './userContext';
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import {Button, InputAdornment, TextField} from "@mui/material";
+import {Alert, Button, InputAdornment, Snackbar, TextField} from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import {Visibility, VisibilityOff} from "@mui/icons-material";
 import login_avatar from '../resources/login-avatar.svg';
@@ -17,6 +17,16 @@ const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [touched, setTouched] = useState({ email: false, password: false });
     const [formValid, setFormValid] = useState(false);
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+
+    const showSnackbar = (message, severity = 'error') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
 
     const navigate = useNavigate();
     const { login: setUser } = useUser();
@@ -48,7 +58,7 @@ const LoginPage = () => {
             setUser({ email: userEmail, id, firstName, lastName }, tokenValue);
             navigate('/home');
         } catch (error) {
-            setError('Login failed. Please check your credentials.');
+            showSnackbar('Login failed. Please check your credentials.', 'error');
         }
     };
 
@@ -137,6 +147,28 @@ const LoginPage = () => {
                     </Link>
                 </Typography>
             </Box>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={5000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity={snackbarSeverity}
+                    sx={{
+                        width: '100%',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        backgroundColor:
+                            snackbarSeverity === 'success' ? 'rgba(45,179,75,0.27)' :
+                                snackbarSeverity === 'error' ? 'rgba(211,47,47,0.29)' :
+                                    undefined,
+                    }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
 
     );

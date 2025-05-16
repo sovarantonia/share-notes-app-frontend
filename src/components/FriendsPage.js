@@ -4,9 +4,10 @@ import {debounce} from "lodash";
 import Sidebar from "./Sidebar";
 import {useUser} from "./userContext";
 import {
+    Alert,
     Button,
     Dialog, DialogActions, DialogContent, DialogContentText,
-    DialogTitle,
+    DialogTitle, Snackbar,
     Table,
     TableBody,
     TableCell,
@@ -29,15 +30,26 @@ const FriendsPage = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [friendIdToRemove, setFriendIdToRemove] = useState(null);
 
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // or 'error'
+
+    const showSnackbar = (message, severity = 'success') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
+
     const handleLogout = () => {
         logout();
     };
     const sendFriendRequest = async (senderId, receiverEmail) => {
         try {
             await sendRequest(senderId, receiverEmail);
-            alert("Request was sent")
+            showSnackbar("Request was sent", 'success')
         } catch (error) {
-            setError("Error sending the request");
+            showSnackbar("Error sending the request", 'error');
+
         }
     }
 
@@ -48,7 +60,7 @@ const FriendsPage = () => {
             const receiverEmail = selectedUser.email;
             sendFriendRequest(senderId, receiverEmail)
         } else {
-            alert("Please select a user.");
+            showSnackbar("Please select a user.", 'error');
         }
     }
 
@@ -64,10 +76,10 @@ const FriendsPage = () => {
     const removeFromFriendList = async (friendId) => {
         try {
             await removeFriend(friendId);
-            alert('User was removed from friend list')
+            showSnackbar('User was removed from friend list', 'success')
             debounceFriendList();
         } catch (error) {
-            setError('Error removing use from friend list')
+            showSnackbar('Error removing use from friend list', 'error')
         }
     }
 
@@ -203,6 +215,28 @@ const FriendsPage = () => {
                     </DialogActions>
                 </Dialog>
             </Box>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={4000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity={snackbarSeverity}
+                    sx={{
+                        width: '100%',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        backgroundColor:
+                            snackbarSeverity === 'success' ? 'rgba(45,179,75,0.27)' :
+                                snackbarSeverity === 'error' ? 'rgba(211,47,47,0.29)' :
+                                    undefined,
+                    }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }
