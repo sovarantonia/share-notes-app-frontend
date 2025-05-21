@@ -6,7 +6,7 @@ import {debounce} from "lodash";
 import {
     Button, Card, CardActions,
     CardContent, Checkbox,
-    FormControlLabel, Grid, Tab,
+    FormControlLabel, Grid, Snackbar, SnackbarContent, Tab,
     Tabs
 } from "@mui/material";
 
@@ -226,36 +226,43 @@ const SharesPage = () => {
                     <Typography sx={{ mt: 3 }}>No sent notes found.</Typography>
                 )}
 
-                {selectedReceivedNotes.length > 0 && (
-                    <Box
+
+                <Snackbar
+                    open={selectedReceivedNotes.length > 0}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                >
+                    <SnackbarContent
                         sx={{
-                            position: 'fixed',
-                            bottom: 20,
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            backgroundColor: '#fff',
+                            backgroundColor: 'background.default',
+                            color: 'text.primary',
                             borderRadius: 2,
                             boxShadow: 3,
-                            padding: 2,
-                            zIndex: 1300,
+                            px: 3,
+                            py: 1.5,
                         }}
-                    >
-                        <Typography variant="body2" sx={{ mr: 2, display: 'inline-block' }}>
-                            {selectedReceivedNotes.length} note{selectedReceivedNotes.length > 1 ? 's' : ''} selected
-                        </Typography>
-                        <Button variant="contained" onClick={() => setOpenDownloadDialog(true)}>
-                            Download Selected
-                        </Button>
-                        <DownloadDialog
-                            open={openDownloadDialog}
-                            onClose={() => setOpenDownloadDialog(false)}
-                            selectedNotesIds={selectedReceivedNotes}
-                        />
-                        <Button variant="text" onClick={() => setSelectedReceivedNotes([])} sx={{ ml: 2 }}>
-                            Clear Selection
-                        </Button>
-                    </Box>
-                )}
+                        message={
+                            <Typography variant="body2">
+                                {selectedReceivedNotes.length} note{selectedReceivedNotes.length > 1 ? 's' : ''} selected
+                            </Typography>
+                        }
+                        action={
+                            <>
+                                <Button size="small" variant="contained" onClick={() => setOpenDownloadDialog(true)}>
+                                    Download
+                                </Button>
+                                <Button size="small" color="inherit" onClick={() => setSelectedReceivedNotes([])} sx={{ ml: 1 }}>
+                                    Clear
+                                </Button>
+                            </>
+                        }
+                    />
+                </Snackbar>
+
+                <DownloadDialog
+                    open={openDownloadDialog}
+                    onClose={() => setOpenDownloadDialog(false)}
+                    selectedNotesIds={selectedReceivedNotes}
+                />
 
                 {selectedNoteId !== null && (
                     <SharedNoteDialog
