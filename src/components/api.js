@@ -1,7 +1,8 @@
 import axios from 'axios';
 import qs from 'qs';
 
-const API_URL = 'http://localhost:8080';
+//const API_URL = 'http://localhost:8080';
+const API_URL = 'https://share-notes-app-enwh.onrender.com'
 
 // Axios instance to automatically attach Authorization header if token is present
 const api = axios.create({
